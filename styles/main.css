@@ -79,7 +79,7 @@ body.world-3 #game-container {
     top: 15px;
     left: 15px;
     color: var(--primary-color);
-    font-size: 12px;
+    font-size: 14px;
     text-shadow:
         2px 2px 0px #000000,
         3px 3px 0px rgba(0, 0, 0, 0.5);
@@ -104,7 +104,7 @@ body.world-3 #level-info {
     left: 50%;
     transform: translateX(-50%);
     color: var(--primary-color);
-    font-size: 16px;
+    font-size: 18px;
     text-shadow:
         2px 2px 0px #000000,
         3px 3px 0px rgba(0, 0, 0, 0.5);
@@ -245,7 +245,7 @@ body.world-2 .level-card {
 }
 
 .level-title {
-    font-size: 12px;
+    font-size: 14px;
     color: #ffffff;
     margin-bottom: 8px;
     text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
@@ -662,7 +662,7 @@ body.world-2 .level-card {
 }
 
 .speedrun-desc {
-    font-size: 12px;
+    font-size: 14px;
     color: #333;
     text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.3);
 }
@@ -778,7 +778,7 @@ body.world-2 .level-card {
     color: #000;
     border: 3px solid #FF6BB5;
     font-family: 'Press Start 2P', cursive;
-    font-size: 12px;
+    font-size: 14px;
     cursor: pointer;
     border-radius: 5px;
     box-shadow: 
@@ -862,7 +862,7 @@ body.world-2 .level-card {
     background: rgba(0, 0, 0, 0.3);
     border: 2px solid #333;
     border-radius: 5px;
-    font-size: 12px;
+    font-size: 14px;
     color: #ffffff;
 }
 
@@ -900,7 +900,7 @@ body.world-2 .level-card {
     text-align: center;
     color: #666;
     padding: 40px;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .leaderboard-close-btn {
@@ -910,7 +910,7 @@ body.world-2 .level-card {
     color: #ffffff;
     border: 3px solid #FFB3D9;
     font-family: 'Press Start 2P', cursive;
-    font-size: 12px;
+    font-size: 14px;
     cursor: pointer;
     border-radius: 5px;
     box-shadow: 
@@ -1070,7 +1070,7 @@ body.world-2 .level-card {
     color: #ffffff;
     border: none;
     font-family: "Press Start 2P", cursive;
-    font-size: 12px;
+    font-size: 14px;
     cursor: pointer;
     border-radius: 5px;
     box-shadow: 
@@ -1112,7 +1112,7 @@ body.world-2 .level-card {
     color: #ffffff;
     border: 3px solid #888;
     font-family: "Press Start 2P", cursive;
-    font-size: 12px;
+    font-size: 14px;
     cursor: pointer;
     border-radius: 5px;
     box-shadow: 
@@ -1413,12 +1413,12 @@ body.world-3 .challenge-leaderboard-btn:hover {
 }
 
 .control-label {
-    font-size: 12px;
+    font-size: 14px;
     color: #ffffff;
 }
 
 .control-key {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--primary-color);
     background: rgba(0, 0, 0, 0.5);
     padding: 6px 12px;
@@ -1436,7 +1436,7 @@ body.world-3 .challenge-leaderboard-btn:hover {
 }
 
 .setting-item label {
-    font-size: 12px;
+    font-size: 14px;
     color: #ffffff;
     min-width: 150px;
 }
@@ -1474,7 +1474,7 @@ body.world-3 .challenge-leaderboard-btn:hover {
 }
 
 .setting-item span {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--primary-light);
     min-width: 50px;
 }

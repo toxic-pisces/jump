@@ -940,19 +940,22 @@ export class LevelSelect {
             [0,0,0,0,0,1,1,0,0,0,0,0]
         ];
 
-        const pixelSize = 5;
+        const pixelSize = 3; // Reduced from 5 to 3
+        const offsetX = 4; // Center in 40x40 canvas
+        const offsetY = 2;
+
         pixels.forEach((row, y) => {
             row.forEach((pixel, x) => {
                 if (pixel === 1) {
                     // Silver/gray gradient
                     const shade = y < 6 ? '#C0C0C0' : '#808080';
                     ctx.fillStyle = shade;
-                    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                    ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, pixelSize, pixelSize);
 
                     // Highlight on top
                     if (y < 3 || (y >= 5 && y <= 6 && x >= 5 && x <= 6)) {
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize - 1, pixelSize - 1);
+                        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, pixelSize - 1, pixelSize - 1);
                     }
                 }
             });
@@ -978,20 +981,22 @@ export class LevelSelect {
             [0,0,0,1,1,1,1,1,1,0,0,0],
             [0,0,0,0,0,0,0,0,0,0,0,0]
         ];
-        
-        const pixelSize = 5;
+
+        const pixelSize = 3; // Reduced from 5 to 3
+        const offsetX = 2; // Center in 40x40 canvas
+        const offsetY = 2;
         pixels.forEach((row, y) => {
             row.forEach((pixel, x) => {
                 if (pixel === 1) {
                     // Gold gradient
                     const shade = y < 7 ? '#FFD700' : '#DAA520';
                     ctx.fillStyle = shade;
-                    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
-                    
+                    ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, pixelSize, pixelSize);
+
                     // Highlight on top
                     if (y < 5) {
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, 2);
+                        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, pixelSize, 2);
                     }
                 }
             });

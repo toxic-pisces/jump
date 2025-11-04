@@ -114,18 +114,21 @@ export class Game {
             [0,1,1,1,1,1,1,1,1,0]
         ];
 
-        const pixelSize = 4;
+        const pixelSize = 3; // Smaller to match level/timer text height
+        const offsetX = 5; // Center it in the 40x40 canvas
+        const offsetY = 5;
+
         pixels.forEach((row, y) => {
             row.forEach((pixel, x) => {
                 if (pixel === 1) {
                     // Draw pixel with primary color
                     ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--primary-color') || '#FF69B4';
-                    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                    ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, pixelSize, pixelSize);
 
                     // Add highlight
                     if (y < 5) {
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize - 1, pixelSize - 1);
+                        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, pixelSize - 1, pixelSize - 1);
                     }
                 }
             });
