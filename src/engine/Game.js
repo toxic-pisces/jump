@@ -6,6 +6,7 @@ import { ParticleSystem } from '../effects/ParticleSystem.js';
 import { VictoryScreen } from '../ui/VictoryScreen.js';
 import { LevelSelect } from '../ui/LevelSelect.js';
 import { ChallengesMenu } from '../ui/ChallengesMenu.js';
+import { SettingsMenu } from '../ui/SettingsMenu.js';
 import { LevelEditor } from '../editor/LevelEditor.js';
 import { SpeedrunManager } from '../speedrun/SpeedrunManager.js';
 import { InputManager } from '../managers/InputManager.js';
@@ -32,11 +33,16 @@ export class Game {
         this.victoryScreen = new VictoryScreen();
         this.levelSelect = new LevelSelect();
         this.challengesMenu = new ChallengesMenu();
+        this.settingsMenu = new SettingsMenu();
         this.levelEditor = new LevelEditor(canvas, this);
 
         // Set Game reference for UI components
         this.levelSelect.setGame(this);
         this.challengesMenu.setGame(this);
+
+        // Home button
+        this.homeButton = document.getElementById('home-button');
+        this.setupHomeButton();
 
         // Player
         this.player = new Player(PLAYER.DEFAULT_SPAWN_X, PLAYER.DEFAULT_SPAWN_Y);
@@ -73,6 +79,21 @@ export class Game {
         this.showLevelSelect();
     }
 
+    setupHomeButton() {
+        this.homeButton.addEventListener('click', () => {
+            if (this.stateManager.isPlaying()) {
+                if (this.isSpeedrunMode) {
+                    if (confirm('Abort speedrun and return to menu?')) {
+                        this.exitSpeedrun();
+                    }
+                } else {
+                    this.stateManager.setState(GAME_STATES.MENU);
+                    this.showLevelSelect();
+                }
+            }
+        });
+    }
+
     setupInputHandlers() {
         // Handle key down events
         this.inputManager.onKeyDown((e) => {
@@ -95,6 +116,11 @@ export class Game {
             if (e.code === 'KeyE' && this.stateManager.isMenu()) {
                 this.levelSelect.hide();
                 this.levelEditor.open();
+            }
+
+            // S to open settings (when in menu)
+            if (e.code === 'KeyS' && this.stateManager.isMenu()) {
+                this.showSettings();
             }
         });
     }
@@ -335,6 +361,14 @@ export class Game {
         this.stateManager.setState(GAME_STATES.MENU);
         this.levelSelect.hide();
         this.challengesMenu.show();
+    }
+
+    showSettings() {
+        this.levelSelect.hide();
+        this.challengesMenu.hide();
+        this.settingsMenu.show(() => {
+            this.showLevelSelect();
+        });
     }
 
     returnToEditor() {

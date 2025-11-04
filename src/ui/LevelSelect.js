@@ -184,13 +184,16 @@ export class LevelSelect {
         const container = this.element.querySelector('.levels-grid');
         container.innerHTML = '';
 
-        // Challenges button only in World 1
+        // Challenges and Settings buttons only in World 1
         if (this.currentWorld === 1) {
             const challengesCard = this.createChallengesCard();
             container.appendChild(challengesCard);
+
+            const settingsCard = this.createSettingsCard();
+            container.appendChild(settingsCard);
         }
 
-        // Level je nach Welt
+        // Level depending on world
         if (this.currentWorld === 1) {
             // World 1 Levels
             const levels = [
@@ -852,10 +855,82 @@ export class LevelSelect {
         return card;
     }
 
+    createSettingsCard() {
+        const card = document.createElement('div');
+        card.className = 'level-card speedrun-card';
+        card.onclick = () => {
+            this.game.showSettings();
+        };
+
+        const preview = document.createElement('div');
+        preview.className = 'speedrun-preview';
+
+        // Create canvas for settings gear icon
+        const canvas = document.createElement('canvas');
+        canvas.width = 60;
+        canvas.height = 60;
+        canvas.className = 'speedrun-icon';
+        this.drawGear(canvas);
+
+        const text = document.createElement('div');
+        text.className = 'speedrun-text';
+        text.textContent = 'SETTINGS';
+
+        const desc = document.createElement('div');
+        desc.className = 'speedrun-desc';
+        desc.textContent = 'Controls & Audio';
+
+        preview.appendChild(canvas);
+        preview.appendChild(text);
+        preview.appendChild(desc);
+        card.appendChild(preview);
+
+        return card;
+    }
+
+    drawGear(canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        // Pixel art gear - Gray/Silver
+        const pixels = [
+            [0,0,0,0,0,1,1,0,0,0,0,0],
+            [0,0,0,1,1,1,1,1,1,0,0,0],
+            [0,0,1,1,1,1,1,1,1,1,0,0],
+            [0,1,1,1,0,0,0,0,1,1,1,0],
+            [0,1,1,0,0,0,0,0,0,1,1,0],
+            [1,1,1,0,0,1,1,0,0,1,1,1],
+            [1,1,1,0,0,1,1,0,0,1,1,1],
+            [0,1,1,0,0,0,0,0,0,1,1,0],
+            [0,1,1,1,0,0,0,0,1,1,1,0],
+            [0,0,1,1,1,1,1,1,1,1,0,0],
+            [0,0,0,1,1,1,1,1,1,0,0,0],
+            [0,0,0,0,0,1,1,0,0,0,0,0]
+        ];
+
+        const pixelSize = 5;
+        pixels.forEach((row, y) => {
+            row.forEach((pixel, x) => {
+                if (pixel === 1) {
+                    // Silver/gray gradient
+                    const shade = y < 6 ? '#C0C0C0' : '#808080';
+                    ctx.fillStyle = shade;
+                    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+
+                    // Highlight on top
+                    if (y < 3 || (y >= 5 && y <= 6 && x >= 5 && x <= 6)) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize - 1, pixelSize - 1);
+                    }
+                }
+            });
+        });
+    }
+
     drawTrophy(canvas) {
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
-        
+
         // Pixel art trophy - Gold
         const pixels = [
             [0,0,1,0,0,0,0,0,0,1,0,0],

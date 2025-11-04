@@ -10,15 +10,23 @@
     <div id="game-container">
         <canvas id="gameCanvas"></canvas>
         <div id="ui-overlay">
-            <div id="level-info">LEVEL 1</div>
-            <div id="timer">00:00</div>
-            
+            <div id="hud">
+                <div id="level-info">LEVEL 1</div>
+                <div id="timer">00:00</div>
+                <button id="home-button" class="icon-button" title="Return to Menu">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                </button>
+            </div>
+
             <!-- Level Select Screen -->
             <div id="level-select">
                 <div class="level-select-content">
                     <div class="level-select-title">SELECT LEVEL</div>
                     <div class="levels-grid"></div>
-                    <div class="editor-hint">PRESS E FOR LEVEL EDITOR</div>
+                    <div class="editor-hint">PRESS E FOR EDITOR | PRESS S FOR SETTINGS</div>
                 </div>
             </div>
             
@@ -34,6 +42,55 @@
                     <div class="time-display">TIME: <span id="final-time">00:00</span></div>
                     <div class="continue-text">PRESS SPACE FOR NEXT LEVEL</div>
                     <div class="menu-text">PRESS ESC FOR MENU</div>
+                </div>
+            </div>
+
+            <!-- Settings Menu -->
+            <div id="settings-menu" class="hidden">
+                <div class="settings-content">
+                    <div class="settings-title">SETTINGS</div>
+
+                    <div class="settings-section">
+                        <h3>CONTROLS</h3>
+                        <div class="control-list">
+                            <div class="control-item">
+                                <span class="control-label">Move Left:</span>
+                                <span class="control-key">← or A</span>
+                            </div>
+                            <div class="control-item">
+                                <span class="control-label">Move Right:</span>
+                                <span class="control-key">→ or D</span>
+                            </div>
+                            <div class="control-item">
+                                <span class="control-label">Jump:</span>
+                                <span class="control-key">SPACE</span>
+                            </div>
+                            <div class="control-item">
+                                <span class="control-label">Menu:</span>
+                                <span class="control-key">ESC</span>
+                            </div>
+                            <div class="control-item">
+                                <span class="control-label">Editor:</span>
+                                <span class="control-key">E</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3>AUDIO</h3>
+                        <div class="setting-item">
+                            <label for="music-volume">Music Volume:</label>
+                            <input type="range" id="music-volume" min="0" max="100" value="70">
+                            <span id="music-volume-value">70%</span>
+                        </div>
+                        <div class="setting-item">
+                            <label for="sfx-volume">Sound Effects:</label>
+                            <input type="range" id="sfx-volume" min="0" max="100" value="80">
+                            <span id="sfx-volume-value">80%</span>
+                        </div>
+                    </div>
+
+                    <button id="settings-back-button" class="menu-button">BACK TO MENU</button>
                 </div>
             </div>
         </div>

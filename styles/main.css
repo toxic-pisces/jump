@@ -1328,3 +1328,231 @@ body.world-3 .challenge-leaderboard-btn:hover {
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
 }
+
+/* HUD Styling */
+#hud {
+    position: relative;
+    width: 100%;
+    height: 100px;
+}
+
+/* Home Button */
+#home-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 3px solid var(--primary-light);
+    border-radius: 8px;
+    color: var(--primary-color);
+    cursor: pointer;
+    pointer-events: auto;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 4px 0px var(--primary-dark),
+        0 6px 15px rgba(0, 0, 0, 0.5);
+}
+
+#home-button:hover {
+    background: rgba(0, 0, 0, 0.95);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 0px var(--primary-dark),
+        0 8px 20px rgba(0, 0, 0, 0.7);
+}
+
+#home-button:active {
+    transform: translateY(2px);
+    box-shadow: 
+        0 2px 0px var(--primary-dark),
+        0 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+#home-button svg {
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+}
+
+/* Settings Menu */
+#settings-menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+#settings-menu.hidden {
+    display: none;
+}
+
+.settings-content {
+    background: rgba(0, 0, 0, 0.9);
+    border: 6px solid var(--primary-color);
+    border-radius: 20px;
+    padding: 40px 60px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 
+        0 10px 0px var(--primary-dark),
+        0 15px 40px rgba(0, 0, 0, 0.6),
+        inset 0 2px 0px rgba(255, 255, 255, 0.1);
+}
+
+.settings-title {
+    font-size: 32px;
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 30px;
+    text-shadow: 
+        4px 4px 0px var(--primary-dark),
+        8px 8px 0px rgba(0, 0, 0, 0.3);
+    letter-spacing: 2px;
+}
+
+.settings-section {
+    margin-bottom: 30px;
+}
+
+.settings-section h3 {
+    font-size: 16px;
+    color: var(--primary-light);
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-dark);
+}
+
+/* Controls List */
+.control-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.control-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.control-label {
+    font-size: 12px;
+    color: #ffffff;
+}
+
+.control-key {
+    font-size: 12px;
+    color: var(--primary-color);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: 2px solid var(--primary-dark);
+}
+
+/* Volume Controls */
+.setting-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.setting-item label {
+    font-size: 12px;
+    color: #ffffff;
+    min-width: 150px;
+}
+
+.setting-item input[type="range"] {
+    flex: 1;
+    min-width: 200px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.setting-item input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid var(--primary-light);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.setting-item input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid var(--primary-light);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.setting-item span {
+    font-size: 12px;
+    color: var(--primary-light);
+    min-width: 50px;
+}
+
+/* Settings Back Button */
+#settings-back-button {
+    width: 100%;
+    margin-top: 20px;
+    padding: 15px 30px;
+    font-size: 14px;
+    background: var(--primary-color);
+    color: #000000;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive;
+    text-align: center;
+    transition: all 0.2s ease;
+    box-shadow: 
+        0 6px 0px var(--primary-dark),
+        0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+#settings-back-button:hover {
+    background: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 0px var(--primary-dark),
+        0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+#settings-back-button:active {
+    transform: translateY(4px);
+    box-shadow: 
+        0 2px 0px var(--primary-dark),
+        0 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Hide HUD during menu */
+body.in-menu #hud {
+    display: none;
+}
