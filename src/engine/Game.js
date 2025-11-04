@@ -43,6 +43,7 @@ export class Game {
         // Home button
         this.homeButton = document.getElementById('home-button');
         this.setupHomeButton();
+        this.drawHomeIcon();
 
         // Player
         this.player = new Player(PLAYER.DEFAULT_SPAWN_X, PLAYER.DEFAULT_SPAWN_Y);
@@ -91,6 +92,43 @@ export class Game {
                     this.showLevelSelect();
                 }
             }
+        });
+    }
+
+    drawHomeIcon() {
+        const canvas = this.homeButton.querySelector('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        // Pixel art home icon
+        const pixels = [
+            [0,0,0,0,1,1,0,0,0,0],
+            [0,0,0,1,1,1,1,0,0,0],
+            [0,0,1,1,1,1,1,1,0,0],
+            [0,1,1,1,1,1,1,1,1,0],
+            [1,1,1,1,1,1,1,1,1,1],
+            [0,1,1,1,1,1,1,1,1,0],
+            [0,1,1,0,0,0,0,1,1,0],
+            [0,1,1,0,0,0,0,1,1,0],
+            [0,1,1,0,0,0,0,1,1,0],
+            [0,1,1,1,1,1,1,1,1,0]
+        ];
+
+        const pixelSize = 4;
+        pixels.forEach((row, y) => {
+            row.forEach((pixel, x) => {
+                if (pixel === 1) {
+                    // Draw pixel with primary color
+                    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--primary-color') || '#FF69B4';
+                    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+
+                    // Add highlight
+                    if (y < 5) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize - 1, pixelSize - 1);
+                    }
+                }
+            });
         });
     }
 

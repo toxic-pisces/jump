@@ -73,83 +73,54 @@ body.world-3 #game-container {
     pointer-events: none;
 }
 
-/* In-Game UI mit besserer Lesbarkeit */
+/* In-Game UI - Clean minimal design */
 #level-info {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 15px;
+    left: 15px;
     color: var(--primary-color);
-    font-size: 14px;
-    text-shadow: 
+    font-size: 12px;
+    text-shadow:
         2px 2px 0px #000000,
-        4px 4px 0px #FFB3D9;
+        3px 3px 0px rgba(0, 0, 0, 0.5);
     letter-spacing: 2px;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 12px 20px;
-    border-radius: 8px;
-    border: 3px solid #FFB3D9;
-    box-shadow: 
-        0 4px 0px #FF6BB5,
-        0 6px 15px rgba(0, 0, 0, 0.5);
 }
 
 body.world-2 #level-info {
-    text-shadow: 
+    text-shadow:
         2px 2px 0px #000000,
-        4px 4px 0px #87CEEB;
-    border: 3px solid #87CEEB;
-    box-shadow: 
-        0 4px 0px #2C5282,
-        0 6px 15px rgba(0, 0, 0, 0.5);
+        3px 3px 0px rgba(0, 0, 0, 0.5);
 }
 
 body.world-3 #level-info {
-    text-shadow: 
+    text-shadow:
         2px 2px 0px #000000,
-        4px 4px 0px #FFF59D;
-    border: 3px solid #FFF59D;
-    box-shadow: 
-        0 4px 0px #DAA520,
-        0 6px 15px rgba(0, 0, 0, 0.5);
+        3px 3px 0px rgba(0, 0, 0, 0.5);
 }
 
 #timer {
     position: absolute;
-    top: 20px;
-    right: 20px;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
     color: var(--primary-color);
-    font-size: 14px;
-    text-shadow: 
+    font-size: 16px;
+    text-shadow:
         2px 2px 0px #000000,
-        4px 4px 0px #FFB3D9;
+        3px 3px 0px rgba(0, 0, 0, 0.5);
     letter-spacing: 2px;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 12px 20px;
-    border-radius: 8px;
-    border: 3px solid #FFB3D9;
-    box-shadow: 
-        0 4px 0px #FF6BB5,
-        0 6px 15px rgba(0, 0, 0, 0.5);
 }
 
 body.world-2 #timer {
-    text-shadow: 
+    text-shadow:
         2px 2px 0px #000000,
-        4px 4px 0px #87CEEB;
-    border: 3px solid #87CEEB;
-    box-shadow: 
-        0 4px 0px #2C5282,
-        0 6px 15px rgba(0, 0, 0, 0.5);
+        3px 3px 0px rgba(0, 0, 0, 0.5);
 }
 
 body.world-3 #timer {
-    text-shadow: 
+    text-shadow:
         2px 2px 0px #000000,
-        4px 4px 0px #FFF59D;
-    border: 3px solid #FFF59D;
-    box-shadow: 
-        0 4px 0px #DAA520,
-        0 6px 15px rgba(0, 0, 0, 0.5);
+        3px 3px 0px rgba(0, 0, 0, 0.5);
 }
 
 /* Level Select Screen */
@@ -1336,45 +1307,35 @@ body.world-3 .challenge-leaderboard-btn:hover {
     height: 100px;
 }
 
-/* Home Button */
+/* Home Button - Pixelated icon */
 #home-button {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    background: rgba(0, 0, 0, 0.8);
-    border: 3px solid var(--primary-light);
-    border-radius: 8px;
+    top: 15px;
+    right: 15px;
+    width: auto;
+    height: auto;
+    background: transparent;
+    border: none;
     color: var(--primary-color);
     cursor: pointer;
     pointer-events: auto;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 
-        0 4px 0px var(--primary-dark),
-        0 6px 15px rgba(0, 0, 0, 0.5);
+    transition: transform 0.1s ease;
+    padding: 0;
 }
 
 #home-button:hover {
-    background: rgba(0, 0, 0, 0.95);
-    transform: translateY(-2px);
-    box-shadow: 
-        0 6px 0px var(--primary-dark),
-        0 8px 20px rgba(0, 0, 0, 0.7);
+    transform: scale(1.1);
 }
 
 #home-button:active {
-    transform: translateY(2px);
-    box-shadow: 
-        0 2px 0px var(--primary-dark),
-        0 3px 10px rgba(0, 0, 0, 0.5);
+    transform: scale(0.95);
 }
 
-#home-button svg {
-    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+#home-button canvas {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    filter: drop-shadow(2px 2px 0px rgba(0, 0, 0, 0.8));
 }
 
 /* Settings Menu */
@@ -1555,4 +1516,42 @@ body.world-3 .challenge-leaderboard-btn:hover {
 /* Hide HUD during menu */
 body.in-menu #hud {
     display: none;
+}
+
+/* Corner Icon Buttons in Level Select */
+.corner-buttons {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.corner-icon-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    pointer-events: auto;
+    transition: transform 0.1s ease;
+}
+
+.corner-icon-button:hover {
+    transform: scale(1.15);
+}
+
+.corner-icon-button:active {
+    transform: scale(0.95);
+}
+
+.corner-icon-button canvas {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    filter: drop-shadow(2px 2px 0px rgba(0, 0, 0, 0.8));
 }

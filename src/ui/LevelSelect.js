@@ -78,8 +78,44 @@ export class LevelSelect {
         }
     }
 
+    createCornerButtons() {
+        // Remove old buttons if they exist
+        const oldButtons = this.element.querySelector('.corner-buttons');
+        if (oldButtons) oldButtons.remove();
+
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.className = 'corner-buttons';
+
+        // Challenges button (top left)
+        const challengesBtn = document.createElement('button');
+        challengesBtn.className = 'corner-icon-button challenges-button';
+        challengesBtn.title = 'Challenges';
+        challengesBtn.onclick = () => this.game.showChallengesMenu();
+        const challengesCanvas = document.createElement('canvas');
+        challengesCanvas.width = 40;
+        challengesCanvas.height = 40;
+        this.drawTrophy(challengesCanvas);
+        challengesBtn.appendChild(challengesCanvas);
+
+        // Settings button (top right)
+        const settingsBtn = document.createElement('button');
+        settingsBtn.className = 'corner-icon-button settings-button';
+        settingsBtn.title = 'Settings';
+        settingsBtn.onclick = () => this.game.showSettings();
+        const settingsCanvas = document.createElement('canvas');
+        settingsCanvas.width = 40;
+        settingsCanvas.height = 40;
+        this.drawGear(settingsCanvas);
+        settingsBtn.appendChild(settingsCanvas);
+
+        buttonsContainer.appendChild(challengesBtn);
+        buttonsContainer.appendChild(settingsBtn);
+
+        this.element.querySelector('.level-select-content').appendChild(buttonsContainer);
+    }
+
     createWorldNavigation() {
-        // Entferne alte Navigation falls vorhanden
+        // Remove old navigation if exists
         const oldNav = this.element.querySelector('.world-navigation');
         if (oldNav) oldNav.remove();
         
@@ -184,13 +220,9 @@ export class LevelSelect {
         const container = this.element.querySelector('.levels-grid');
         container.innerHTML = '';
 
-        // Challenges and Settings buttons only in World 1
+        // Small icon buttons for challenges and settings only in World 1
         if (this.currentWorld === 1) {
-            const challengesCard = this.createChallengesCard();
-            container.appendChild(challengesCard);
-
-            const settingsCard = this.createSettingsCard();
-            container.appendChild(settingsCard);
+            this.createCornerButtons();
         }
 
         // Level depending on world
