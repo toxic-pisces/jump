@@ -314,7 +314,7 @@ export class Game {
         
         this.isSpeedrunMode = false;
         this.isIronmanMode = false;
-        this.gameState = 'speedrun-finished';
+        this.stateManager.setState('speedrun-finished');
         this.speedrunManager.showNameInput(this.speedrunTime, leaderboardType);
     }
 
@@ -327,12 +327,12 @@ export class Game {
         this.isIronmanMode = false;
         this.speedrunTime = 0;
         this.timerStarted = false;
-        this.gameState = 'menu';
+        this.stateManager.setState(GAME_STATES.MENU);
         this.showLevelSelect();
     }
 
     showChallengesMenu() {
-        this.gameState = 'menu';
+        this.stateManager.setState(GAME_STATES.MENU);
         this.levelSelect.hide();
         this.challengesMenu.show();
     }
@@ -894,25 +894,25 @@ export class Game {
     handlePlayerDeath() {
         // Ironman mode: death means complete restart
         if (this.isIronmanMode) {
-            this.gameState = 'dead';
+            this.stateManager.setState(GAME_STATES.DEAD);
             this.createDeathParticles();
             setTimeout(() => {
                 // Auto-restart Ironman mode without confirmation
                 this.startIronman();
             }, 800);
         } else {
-            this.gameState = 'dead';
+            this.stateManager.setState(GAME_STATES.DEAD);
             this.createDeathParticles();
             setTimeout(() => this.reset(), 800);
         }
     }
 
     createDeathParticles() {
-        // World-abhängige Farben
+        // World-dependent colors
         const colors = this.currentWorld === 2
-            ? ['#87CEEB', '#4682B4', '#2C5282', '#ffffff']  // Blau
+            ? ['#87CEEB', '#4682B4', '#2C5282', '#ffffff']  // Blue
             : ['#FFB3D9', '#FF8FC7', '#FF6BB5', '#ffffff']; // Pink
-        
+
         for (let i = 0; i < 20; i++) {
             this.particleSystem.emit(
                 this.player.x + this.player.width / 2,
@@ -923,16 +923,16 @@ export class Game {
     }
 
     handlePlayerWin() {
-        this.gameState = 'sucking';
+        this.stateManager.setState(GAME_STATES.SUCKING);
         this.suckProgress = 0;
     }
 
     handlePlayerFall() {
-        // Erstelle Partikel am unteren Bildschirmrand wo der Spieler verschwunden ist
+        // Create particles at bottom of screen where player disappeared
         const fallX = this.player.x + this.player.width / 2;
         const fallY = this.canvas.height;
-        
-        this.gameState = 'dead';
+
+        this.stateManager.setState(GAME_STATES.DEAD);
         this.createFallParticles(fallX, fallY);
         
         // Check if Ironman mode - restart from beginning
@@ -974,9 +974,9 @@ export class Game {
             this.player.y = this.currentLevel.start.y;
         }
         
-        this.gameState = 'playing';
+        this.stateManager.setState(GAME_STATES.PLAYING);
         this.particleSystem.particles = [];
-        this.goalTriggered = false; // Reset Goal-Flag
+        this.goalTriggered = false; // Reset goal flag
         this.projectiles = []; // Reset projectiles
 
         if (!this.isSpeedrunMode) {
@@ -1012,18 +1012,18 @@ export class Game {
     render() {
         this.renderer.clear();
 
-        if (this.gameState === 'editor') {
+        if (this.stateManager.isEditor()) {
             this.levelEditor.render();
             return;
         }
 
-        if (this.currentLevel && this.gameState !== 'menu') {
+        if (this.currentLevel && !this.stateManager.isMenu()) {
             this.renderer.drawLevel(this.currentLevel);
 
             // Draw projectiles
             this.renderer.drawProjectiles(this.projectiles);
 
-            if (this.gameState !== 'dead' && this.player.width > 0) {
+            if (!this.stateManager.isDead() && this.player.width > 0) {
                 this.renderer.drawPlayer(this.player);
             }
 
