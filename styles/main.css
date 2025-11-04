@@ -1,0 +1,1330 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    font-family: 'Press Start 2P', cursive;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    --primary-color: #FF69B4;
+    --primary-light: #FFB3D9;
+    --primary-dark: #CC6699;
+}
+
+body.world-2 {
+    --primary-color: #4682B4;
+    --primary-light: #87CEEB;
+    --primary-dark: #2C5282;
+}
+
+body.world-3 {
+    --primary-color: #FFD700;
+    --primary-light: #FFF59D;
+    --primary-dark: #FFA000;
+}
+
+#game-container {
+    position: relative;
+    box-shadow: 
+        0 0 0 4px #FFB3D9,
+        0 0 0 8px #FF8FC7,
+        0 20px 60px rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 8px solid var(--primary-color);
+    box-shadow: 
+        0 0 20px var(--primary-color),
+        inset 0 0 20px rgba(255, 105, 180, 0.1);
+}
+
+body.world-2 #game-container {
+    box-shadow: 
+        0 0 20px var(--primary-color),
+        inset 0 0 20px rgba(70, 130, 180, 0.1);
+}
+
+body.world-3 #game-container {
+    box-shadow: 
+        0 0 20px var(--primary-color),
+        inset 0 0 20px rgba(255, 215, 0, 0.1);
+}
+
+#gameCanvas {
+    display: block;
+    background: #ffffff;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+#ui-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* In-Game UI mit besserer Lesbarkeit */
+#level-info {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: var(--primary-color);
+    font-size: 14px;
+    text-shadow: 
+        2px 2px 0px #000000,
+        4px 4px 0px #FFB3D9;
+    letter-spacing: 2px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 3px solid #FFB3D9;
+    box-shadow: 
+        0 4px 0px #FF6BB5,
+        0 6px 15px rgba(0, 0, 0, 0.5);
+}
+
+body.world-2 #level-info {
+    text-shadow: 
+        2px 2px 0px #000000,
+        4px 4px 0px #87CEEB;
+    border: 3px solid #87CEEB;
+    box-shadow: 
+        0 4px 0px #2C5282,
+        0 6px 15px rgba(0, 0, 0, 0.5);
+}
+
+body.world-3 #level-info {
+    text-shadow: 
+        2px 2px 0px #000000,
+        4px 4px 0px #FFF59D;
+    border: 3px solid #FFF59D;
+    box-shadow: 
+        0 4px 0px #DAA520,
+        0 6px 15px rgba(0, 0, 0, 0.5);
+}
+
+#timer {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: var(--primary-color);
+    font-size: 14px;
+    text-shadow: 
+        2px 2px 0px #000000,
+        4px 4px 0px #FFB3D9;
+    letter-spacing: 2px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 3px solid #FFB3D9;
+    box-shadow: 
+        0 4px 0px #FF6BB5,
+        0 6px 15px rgba(0, 0, 0, 0.5);
+}
+
+body.world-2 #timer {
+    text-shadow: 
+        2px 2px 0px #000000,
+        4px 4px 0px #87CEEB;
+    border: 3px solid #87CEEB;
+    box-shadow: 
+        0 4px 0px #2C5282,
+        0 6px 15px rgba(0, 0, 0, 0.5);
+}
+
+body.world-3 #timer {
+    text-shadow: 
+        2px 2px 0px #000000,
+        4px 4px 0px #FFF59D;
+    border: 3px solid #FFF59D;
+    box-shadow: 
+        0 4px 0px #DAA520,
+        0 6px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Level Select Screen */
+#level-select {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-out;
+    pointer-events: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px 0;
+}
+
+#level-select.show {
+    display: block;
+    overflow-y: auto;
+}
+
+#level-select::-webkit-scrollbar {
+    display: none;
+}
+
+#level-select {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.level-select-content {
+    text-align: center;
+    width: 90%;
+    max-width: 1100px;
+    padding: 30px 20px;
+    margin: 0 auto;
+}
+
+.level-select-title {
+    font-size: 48px;
+    font-family: 'Press Start 2P', cursive;
+    color: var(--primary-color);
+    text-shadow: 
+        6px 6px 0px rgba(0, 0, 0, 0.3),
+        3px 3px 0px var(--primary-light);
+    margin-bottom: 40px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.levels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    padding: 10px;
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.level-card {
+    background: #1a1a1a;
+    border: 3px solid var(--primary-color);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    image-rendering: pixelated;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    box-shadow: 
+        0 6px 0px #0a0a0a,
+        0 8px 20px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(135deg, #ffffff 0%, var(--primary-light) 100%);
+}
+
+body.world-2 .level-card {
+    background: linear-gradient(135deg, #F0F8FF 0%, #E6F2FF 100%);
+}
+
+.level-card:hover {
+    border-color: var(--primary-dark);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px var(--primary-color);
+}
+
+.level-card:active {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 4px 0px #FF6BB5,
+        0 6px 15px rgba(255, 179, 217, 0.3);
+}
+
+.level-card.custom-level {
+    border-color: #FFB3D9;
+    box-shadow: 
+        0 6px 0px #FF6BB5,
+        0 8px 20px rgba(255, 179, 217, 0.2);
+}
+
+.level-preview {
+    width: 100%;
+    height: auto;
+    border: 3px solid #000;
+    border-radius: 5px;
+    margin-bottom: 12px;
+    display: block;
+    image-rendering: pixelated;
+    background: #ffffff;
+    box-shadow: 
+        0 4px 0px rgba(0, 0, 0, 0.3),
+        inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.level-info {
+    text-align: center;
+    width: 100%;
+}
+
+.level-title {
+    font-size: 12px;
+    color: #ffffff;
+    margin-bottom: 8px;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+.level-stars {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.level-stars canvas {
+    image-rendering: pixelated;
+    filter: drop-shadow(2px 2px 0px rgba(0, 0, 0, 0.3));
+}
+
+.editor-hint {
+    font-size: 10px;
+    color: var(--primary-dark);
+    text-align: center;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+.delete-level-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    background: #DC143C;
+    border: 3px solid #8B0000;
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s;
+    font-family: Arial, sans-serif;
+    line-height: 1;
+    padding: 0;
+    box-shadow: 
+        0 3px 0px #5a0000,
+        0 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.delete-level-btn:hover {
+    background: #FF0000;
+    transform: translateY(-2px);
+    box-shadow: 
+        0 5px 0px #8B0000,
+        0 7px 15px rgba(255, 0, 0, 0.4);
+}
+
+.delete-level-btn:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 0px #5a0000,
+        0 3px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Victory Screen */
+#victory-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease-out;
+    pointer-events: auto;
+}
+
+#victory-screen.show {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.victory-content {
+    text-align: center;
+    animation: slideUp 0.5s ease-out;
+    background: #1a1a1a;
+    padding: 40px 60px;
+    border-radius: 15px;
+    border: 5px solid #FFB3D9;
+    box-shadow: 
+        0 10px 0px #FF6BB5,
+        0 15px 40px rgba(0, 0, 0, 0.6),
+        inset 0 2px 0px rgba(255, 255, 255, 0.1);
+}
+
+/* World 2 Victory Screen */
+#victory-screen.world-2 .victory-content {
+    border-color: #87CEEB;
+    box-shadow: 
+        0 10px 0px #2C5282,
+        0 15px 40px rgba(0, 0, 0, 0.6),
+        inset 0 2px 0px rgba(255, 255, 255, 0.1);
+}
+
+#victory-screen.world-2 .victory-title {
+    color: #87CEEB;
+    text-shadow: 
+        4px 4px 0px #2C5282,
+        8px 8px 0px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.victory-title {
+    font-size: 28px;
+    color: var(--primary-color);
+    margin-bottom: 30px;
+    text-shadow: 
+        4px 4px 0px #FF6BB5,
+        8px 8px 0px rgba(0, 0, 0, 0.3);
+    animation: pulse 2s ease-in-out infinite;
+    letter-spacing: 3px;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.stars-container {
+    margin: 40px 0;
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.pixel-star {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    opacity: 0;
+    transform: scale(0) rotate(-180deg);
+    transition: none;
+    filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 0.3));
+}
+
+.pixel-star.appear {
+    animation: starAppear 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+@keyframes starAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0) rotate(-180deg);
+    }
+    60% {
+        transform: scale(1.2) rotate(20deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+.pixel-star.floating {
+    animation: starFloat 3s ease-in-out infinite;
+}
+
+@keyframes starFloat {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg) scale(1);
+    }
+    50% { 
+        transform: translateY(-15px) rotate(5deg) scale(1);
+    }
+}
+
+.time-display {
+    font-size: 18px;
+    color: #ffffff;
+    margin-top: 30px;
+    text-shadow: 
+        3px 3px 0px rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px 30px;
+    border-radius: 8px;
+    border: 3px solid #333;
+    box-shadow: 
+        0 4px 0px rgba(0, 0, 0, 0.3),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.continue-text {
+    font-size: 10px;
+    color: var(--primary-dark);
+    margin-top: 40px;
+    animation: blink 1.5s ease-in-out infinite;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.menu-text {
+    font-size: 8px;
+    color: #999;
+    margin-top: 15px;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+}
+
+/* Editor Sidebar mit Schatten-Effekten */
+#editor-sidebar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 100%;
+    background: #0a0a0a;
+    padding: 20px;
+    overflow-y: auto;
+    display: none;
+    pointer-events: auto;
+    border-left: 5px solid #FFB3D9;
+    box-shadow: 
+        -5px 0 0px #FF6BB5,
+        -10px 0 30px rgba(0, 0, 0, 0.8);
+}
+
+.editor-header {
+    font-size: 18px;
+    color: #FFB3D9;
+    margin-bottom: 25px;
+    text-align: center;
+    text-shadow: 
+        3px 3px 0px #FF6BB5,
+        6px 6px 0px rgba(0, 0, 0, 0.3);
+    letter-spacing: 2px;
+}
+
+.editor-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #333;
+}
+
+.section-title {
+    font-size: 10px;
+    color: #FFB3D9;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+.tool-btn, .action-btn {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: #1a1a1a;
+    border: 3px solid #333;
+    color: #ffffff;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 5px;
+    box-shadow: 
+        0 4px 0px #0a0a0a,
+        0 6px 10px rgba(0, 0, 0, 0.3);
+}
+
+.tool-btn:hover, .action-btn:hover {
+    border-color: #FFB3D9;
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 0px #FF6BB5,
+        0 8px 15px rgba(255, 179, 217, 0.3);
+}
+
+.tool-btn:active, .action-btn:active {
+    transform: translateY(1px);
+    box-shadow: 
+        0 2px 0px #0a0a0a,
+        0 4px 5px rgba(0, 0, 0, 0.3);
+}
+
+.tool-btn.active {
+    background: #FFB3D9;
+    color: #000;
+    border-color: #FF6BB5;
+    box-shadow: 
+        0 4px 0px #FF8FC7,
+        0 6px 15px rgba(255, 179, 217, 0.4);
+}
+
+.action-btn.primary {
+    background: #4CAF50;
+    border-color: #45a049;
+    box-shadow: 
+        0 4px 0px #2d6a2f,
+        0 6px 10px rgba(0, 0, 0, 0.3);
+}
+
+.action-btn.primary:hover {
+    background: #5cb85f;
+    box-shadow: 
+        0 6px 0px #45a049,
+        0 8px 15px rgba(76, 175, 80, 0.4);
+}
+
+#editor-sidebar label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 8px;
+    color: #ccc;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+}
+
+#editor-sidebar input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    background: #1a1a1a;
+    border: 3px solid #333;
+    color: #ffffff;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    border-radius: 5px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+#editor-sidebar input:focus {
+    outline: none;
+    border-color: #FFB3D9;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.3),
+        0 0 0 2px rgba(255, 179, 217, 0.3);
+}
+
+.controls-text {
+    font-size: 7px;
+    color: #999;
+    line-height: 1.8;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+}
+
+/* Speedrun Card */
+.speedrun-card {
+    background: linear-gradient(135deg, #FFB3D9, #FF8FC7);
+    border-color: #FF6BB5;
+    grid-column: 1 / -1;
+    box-shadow: 
+        0 8px 0px #FF6BB5,
+        0 12px 30px rgba(255, 179, 217, 0.5);
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    padding: 20px;
+}
+
+.speedrun-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 
+        0 15px 0px #FF6BB5,
+        0 20px 40px rgba(255, 179, 217, 0.6);
+}
+
+.speedrun-preview {
+    text-align: left;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.speedrun-icon {
+    font-size: 1px;
+    margin: 0;
+    filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 0.3));
+}
+
+.speedrun-info {
+    flex: 1;
+}
+
+.speedrun-text {
+    font-size: 24px;
+    color: #000;
+    margin-bottom: 10px;
+    text-shadow: 3px 3px 0px rgba(255, 255, 255, 0.5);
+}
+
+.speedrun-desc {
+    font-size: 12px;
+    color: #333;
+    text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.3);
+}
+
+.speedrun-leaderboard-btn {
+    width: auto;
+    height: 100%;
+    padding: 20px 30px;
+    background: #000;
+    color: #FFB3D9;
+    border: 4px solid #FF6BB5;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 8px;
+    box-shadow: 
+        0 6px 0px #FF6BB5,
+        0 8px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.speedrun-leaderboard-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 0px #FF6BB5,
+        0 12px 25px rgba(255, 107, 181, 0.5);
+}
+
+/* Speedrun Name Input */
+#speedrun-name-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+}
+
+#speedrun-name-input.show {
+    display: flex;
+}
+
+.speedrun-input-content {
+    background: #1a1a1a;
+    padding: 40px 60px;
+    border-radius: 15px;
+    border: 5px solid #FFB3D9;
+    box-shadow: 
+        0 10px 0px #FF6BB5,
+        0 15px 40px rgba(0, 0, 0, 0.6);
+    text-align: center;
+}
+
+.speedrun-title {
+    font-size: 24px;
+    color: #FFB3D9;
+    margin-bottom: 20px;
+    text-shadow: 
+        3px 3px 0px #FF6BB5,
+        6px 6px 0px rgba(0, 0, 0, 0.3);
+}
+
+.speedrun-final-time {
+    font-size: 32px;
+    color: #ffffff;
+    margin-bottom: 30px;
+    text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.5);
+}
+
+.speedrun-name-section {
+    margin: 30px 0;
+}
+
+.speedrun-name-section label {
+    display: block;
+    font-size: 10px;
+    color: #FFB3D9;
+    margin-bottom: 10px;
+}
+
+#speedrun-name {
+    width: 100%;
+    padding: 15px;
+    background: #000;
+    border: 3px solid #FFB3D9;
+    color: #ffffff;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px;
+    text-align: center;
+    border-radius: 5px;
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+#speedrun-name:focus {
+    outline: none;
+    border-color: #FF8FC7;
+    box-shadow: 
+        inset 0 4px 8px rgba(0, 0, 0, 0.5),
+        0 0 0 3px rgba(255, 179, 217, 0.3);
+}
+
+.speedrun-submit-btn {
+    width: 100%;
+    padding: 15px;
+    background: #FFB3D9;
+    color: #000;
+    border: 3px solid #FF6BB5;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 
+        0 6px 0px #FF6BB5,
+        0 8px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+}
+
+.speedrun-submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 9px 0px #FF6BB5,
+        0 12px 25px rgba(255, 179, 217, 0.4);
+}
+
+.speedrun-submit-btn:active {
+    transform: translateY(2px);
+    box-shadow: 
+        0 4px 0px #FF6BB5,
+        0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+.speedrun-hint {
+    font-size: 8px;
+    color: #666;
+    margin-top: 15px;
+}
+
+/* Leaderboard */
+#speedrun-leaderboard {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+    z-index: 2000;
+    overflow-y: auto;
+}
+
+#speedrun-leaderboard.show {
+    display: flex;
+}
+
+.leaderboard-content {
+    background: #1a1a1a;
+    padding: 40px 60px;
+    border-radius: 15px;
+    border: 5px solid #FFB3D9;
+    box-shadow: 
+        0 10px 0px #FF6BB5,
+        0 15px 40px rgba(0, 0, 0, 0.6);
+    max-width: 600px;
+    width: 90%;
+}
+
+.leaderboard-title {
+    font-size: 24px;
+    color: #FFB3D9;
+    margin-bottom: 30px;
+    text-align: center;
+    text-shadow: 
+        3px 3px 0px #FF6BB5,
+        6px 6px 0px rgba(0, 0, 0, 0.3);
+}
+
+#leaderboard-list {
+    margin-bottom: 30px;
+}
+
+.leaderboard-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid #333;
+    border-radius: 5px;
+    font-size: 12px;
+    color: #ffffff;
+}
+
+.leaderboard-entry:nth-child(1) {
+    border-color: #FFD700;
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.leaderboard-entry:nth-child(2) {
+    border-color: #C0C0C0;
+    background: rgba(192, 192, 192, 0.1);
+}
+
+.leaderboard-entry:nth-child(3) {
+    border-color: #CD7F32;
+    background: rgba(205, 127, 50, 0.1);
+}
+
+.leaderboard-rank {
+    color: #FFB3D9;
+    min-width: 50px;
+}
+
+.leaderboard-name {
+    flex: 1;
+    text-align: left;
+    padding: 0 20px;
+}
+
+.leaderboard-time {
+    color: #FF8FC7;
+}
+
+.no-scores {
+    text-align: center;
+    color: #666;
+    padding: 40px;
+    font-size: 12px;
+}
+
+.leaderboard-close-btn {
+    width: 100%;
+    padding: 15px;
+    background: #333;
+    color: #ffffff;
+    border: 3px solid #FFB3D9;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 
+        0 6px 0px #FF6BB5,
+        0 8px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+}
+
+.leaderboard-close-btn:hover {
+    background: #444;
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 0px #FF6BB5,
+        0 10px 25px rgba(255, 179, 217, 0.3);
+}
+
+/* World Navigation */
+.world-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 30px;
+    padding: 20px;
+}
+
+.world-title {
+    font-size: 28px;
+    font-family: 'Press Start 2P', cursive;
+    text-shadow: 
+        4px 4px 0px rgba(0, 0, 0, 0.2),
+        2px 2px 0px rgba(255, 255, 255, 0.1);
+    animation: pulse 2s ease-in-out infinite;
+    color: var(--primary-color);
+}
+
+/* World 2 Theme - Blau */
+.level-select.world-2 {
+    background: linear-gradient(135deg, #E6F2FF 0%, #BFE0FF 100%);
+}
+
+.level-select.world-2 .level-select-title {
+    color: #1E3A8A;
+    text-shadow: 
+        4px 4px 0px rgba(44, 82, 130, 0.3),
+        2px 2px 0px rgba(135, 206, 235, 0.2);
+}
+
+.level-select.world-2 .level-card {
+    border: 3px solid #4682B4;
+    background: linear-gradient(135deg, #F0F8FF 0%, #E6F2FF 100%);
+}
+
+.level-select.world-2 .level-card:hover {
+    border-color: #1E3A8A;
+    box-shadow: 0 8px 20px rgba(70, 130, 180, 0.3);
+}
+
+.level-select.world-2 .world-arrow {
+    filter: drop-shadow(0 4px 8px rgba(70, 130, 180, 0.3));
+}
+
+/* Challenges Menu */
+.challenges-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #FFF5FA 0%, #FFEBF3 100%);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.challenges-menu.show {
+    display: flex;
+}
+
+.challenges-content {
+    text-align: center;
+    padding: 40px;
+    max-width: 900px;
+    width: 100%;
+}
+
+.challenges-title {
+    font-size: 48px;
+    color: #FF69B4;
+    margin-bottom: 10px;
+    text-shadow: 
+        4px 4px 0px rgba(255, 105, 180, 0.3),
+        2px 2px 0px rgba(255, 255, 255, 0.2);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.challenges-subtitle {
+    font-size: 14px;
+    color: #FF8FC7;
+    margin-bottom: 40px;
+}
+
+.challenges-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.challenge-card {
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFF8FC 100%);
+    border: 4px solid #FFB3D9;
+    border-radius: 10px;
+    padding: 30px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 
+        0 6px 0px #FF8FC7,
+        0 8px 20px rgba(255, 105, 180, 0.2);
+}
+
+.challenge-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+        0 10px 0px #FF8FC7,
+        0 12px 30px rgba(255, 105, 180, 0.3);
+}
+
+.challenge-card.challenge-hard {
+    border-color: #FF6BB5;
+    background: linear-gradient(135deg, #FFF0F5 0%, #FFE6F0 100%);
+}
+
+.challenge-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.challenge-name {
+    font-size: 16px;
+    color: #FF69B4;
+    margin-bottom: 15px;
+}
+
+.challenge-desc {
+    font-size: 10px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.challenge-btn {
+    width: 100%;
+    padding: 12px;
+    background: #FF69B4;
+    color: #ffffff;
+    border: none;
+    font-family: "Press Start 2P", cursive;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 
+        0 4px 0px #FF6BB5,
+        0 6px 15px rgba(255, 105, 180, 0.3);
+    transition: all 0.2s;
+    margin-bottom: 10px;
+}
+
+.challenge-btn:hover {
+    background: #FF8FC7;
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 0px #FF6BB5,
+        0 8px 20px rgba(255, 105, 180, 0.4);
+}
+
+.challenge-leaderboard-btn {
+    width: 100%;
+    padding: 8px;
+    background: transparent;
+    color: #FF69B4;
+    border: 2px solid #FFB3D9;
+    font-family: "Press Start 2P", cursive;
+    font-size: 8px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.2s;
+}
+
+.challenge-leaderboard-btn:hover {
+    background: #FFF0F5;
+    border-color: #FF8FC7;
+}
+
+.back-btn {
+    padding: 15px 40px;
+    background: #666;
+    color: #ffffff;
+    border: 3px solid #888;
+    font-family: "Press Start 2P", cursive;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 
+        0 6px 0px #444,
+        0 8px 20px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+}
+
+.back-btn:hover {
+    background: #777;
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 0px #444,
+        0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* World 2 Theme for Challenges */
+body.world-2 .challenges-menu {
+    background: linear-gradient(135deg, #F0F8FF 0%, #E6F2FF 100%);
+}
+
+body.world-2 .challenges-title {
+    color: #4682B4;
+}
+
+body.world-2 .challenges-subtitle {
+    color: #87CEEB;
+}
+
+body.world-2 .challenge-card {
+    border-color: #87CEEB;
+    background: linear-gradient(135deg, #FFFFFF 0%, #F8FCFF 100%);
+    box-shadow: 
+        0 6px 0px #4682B4,
+        0 8px 20px rgba(70, 130, 180, 0.2);
+}
+
+body.world-2 .challenge-card:hover {
+    box-shadow: 
+        0 10px 0px #4682B4,
+        0 12px 30px rgba(70, 130, 180, 0.3);
+}
+
+body.world-2 .challenge-name {
+    color: #4682B4;
+}
+
+body.world-2 .challenge-btn {
+    background: #4682B4;
+    box-shadow: 
+        0 4px 0px #2C5282,
+        0 6px 15px rgba(70, 130, 180, 0.3);
+}
+
+body.world-2 .challenge-btn:hover {
+    background: #87CEEB;
+    box-shadow: 
+        0 6px 0px #2C5282,
+        0 8px 20px rgba(70, 130, 180, 0.4);
+}
+
+body.world-2 .challenge-leaderboard-btn {
+    color: #4682B4;
+    border-color: #87CEEB;
+}
+
+body.world-2 .challenge-leaderboard-btn:hover {
+    background: #F0F8FF;
+    border-color: #4682B4;
+}
+
+/* World 3 (Yellow) Theme */
+body.world-3 .challenges-menu {
+    background: linear-gradient(135deg, #FFFEF0 0%, #FFF9E0 100%);
+}
+
+body.world-3 .challenges-title {
+    color: #FFD700;
+}
+
+body.world-3 .challenges-subtitle {
+    color: #FFA000;
+}
+
+body.world-3 .challenge-card {
+    background: #ffffff;
+    border-color: #FFF59D;
+    box-shadow:
+        0 4px 0px #FFA000,
+        0 6px 15px rgba(255, 215, 0, 0.3);
+}
+
+body.world-3 .challenge-card:hover {
+    border-color: #FFD700;
+    box-shadow:
+        0 6px 0px #FFA000,
+        0 8px 20px rgba(255, 215, 0, 0.4);
+}
+
+body.world-3 .challenge-name {
+    color: #FFD700;
+}
+
+body.world-3 .challenge-btn {
+    background: #FFD700;
+    box-shadow:
+        0 4px 0px #FFA000,
+        0 6px 15px rgba(255, 215, 0, 0.3);
+}
+
+body.world-3 .challenge-btn:hover {
+    background: #FFF59D;
+    box-shadow:
+        0 6px 0px #FFA000,
+        0 8px 20px rgba(255, 215, 0, 0.4);
+}
+
+body.world-3 .challenge-leaderboard-btn {
+    color: #FFD700;
+    border-color: #FFF59D;
+}
+
+body.world-3 .challenge-leaderboard-btn:hover {
+    background: #FFFEF0;
+    border-color: #FFD700;
+}
+
+.level-select.world-3 {
+    background: linear-gradient(135deg, #FFFEF0 0%, #FFF9E0 100%);
+}
+
+.level-select.world-3 .level-select-title {
+    color: #FFD700;
+    text-shadow:
+        4px 4px 0px #FFA000,
+        8px 8px 0px rgba(0, 0, 0, 0.3);
+}
+
+.level-select.world-3 .level-card {
+    border-color: #FFF59D;
+    box-shadow:
+        0 4px 0px #FFA000,
+        0 6px 15px rgba(255, 215, 0, 0.3);
+}
+
+.level-select.world-3 .level-card:hover {
+    border-color: #FFD700;
+    box-shadow:
+        0 6px 0px #FFA000,
+        0 8px 20px rgba(255, 215, 0, 0.4);
+}
+
+.level-select.world-3 .world-arrow {
+    color: #FFD700;
+}
+
+#victory-screen.world-3 .victory-content {
+    border-color: #FFF59D;
+    box-shadow:
+        0 10px 0px #FFA000,
+        0 15px 40px rgba(0, 0, 0, 0.6),
+        inset 0 2px 0px rgba(255, 255, 255, 0.1);
+}
+
+#victory-screen.world-3 .victory-title {
+    color: #FFD700;
+    text-shadow:
+        4px 4px 0px #FFA000,
+        8px 8px 0px rgba(0, 0, 0, 0.3);
+}
+
+
+/* Canvas Icons */
+.challenge-icon {
+    margin: 0 auto 15px;
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+.speedrun-icon {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}

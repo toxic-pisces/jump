@@ -1,0 +1,17 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": true,
+    "speedruns": {
+      "world1": {
+        ".indexOn": ["time"]
+      },
+      "world2": {
+        ".indexOn": ["time"]
+      },
+      "ironman": {
+        ".indexOn": ["time"]
+      }
+    }
+  }
+}
