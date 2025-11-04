@@ -2,33 +2,15 @@ import { Renderer } from './Renderer.js';
 import { Physics } from './Physics.js';
 import { Player } from '../entities/Player.js';
 import { CANVAS, PLAYER, LEVEL, GAME_STATES } from '../config/Constants.js';
-import { Level1 } from '../levels/Level1.js';
-import { Level2 } from '../levels/Level2.js';
-import { Level3 } from '../levels/Level3.js';
-import { Level4 } from '../levels/Level4.js';
-import { Level5 } from '../levels/Level5.js';
-import { Level6 } from '../levels/Level6.js';
-import { Level7 } from '../levels/Level7.js';
-import { Level8 } from '../levels/Level8.js';
-import { Level9 } from '../levels/Level9.js';
-import { World2Level1 } from '../levels/World2Level1.js';
-import { World2Level2 } from '../levels/World2Level2.js';
-import { World2Level3 } from '../levels/World2Level3.js';
-import { World2Level4 } from '../levels/World2Level4.js';
-import { World2Level5 } from '../levels/World2Level5.js';
-import { World2Level6 } from '../levels/World2Level6.js';
-import { World2Level7 } from '../levels/World2Level7.js';
-import { World2Level8 } from '../levels/World2Level8.js';
-import { World2Level9 } from '../levels/World2Level9.js';
-import { World3Level1 } from '../levels/World3Level1.js';
-import { World3Level2 } from '../levels/World3Level2.js';
-import { World3Level3 } from '../levels/World3Level3.js';
 import { ParticleSystem } from '../effects/ParticleSystem.js';
 import { VictoryScreen } from '../ui/VictoryScreen.js';
 import { LevelSelect } from '../ui/LevelSelect.js';
 import { ChallengesMenu } from '../ui/ChallengesMenu.js';
 import { LevelEditor } from '../editor/LevelEditor.js';
 import { SpeedrunManager } from '../speedrun/SpeedrunManager.js';
+import { InputManager } from '../managers/InputManager.js';
+import { StateManager } from '../managers/StateManager.js';
+import { LevelManager } from '../managers/LevelManager.js';
 
 export class Game {
     constructor(canvas) {
@@ -36,166 +18,161 @@ export class Game {
         this.canvas.width = CANVAS.WIDTH;
         this.canvas.height = CANVAS.HEIGHT;
 
+        // Core systems
         this.renderer = new Renderer(canvas);
         this.physics = new Physics();
         this.particleSystem = new ParticleSystem();
+
+        // Managers
+        this.inputManager = new InputManager();
+        this.stateManager = new StateManager();
+        this.levelManager = new LevelManager();
+
+        // UI components
         this.victoryScreen = new VictoryScreen();
         this.levelSelect = new LevelSelect();
         this.challengesMenu = new ChallengesMenu();
         this.levelEditor = new LevelEditor(canvas, this);
 
-        // Set Game reference for LevelSelect and ChallengesMenu
+        // Set Game reference for UI components
         this.levelSelect.setGame(this);
         this.challengesMenu.setGame(this);
 
+        // Player
         this.player = new Player(PLAYER.DEFAULT_SPAWN_X, PLAYER.DEFAULT_SPAWN_Y);
+
+        // Level tracking (legacy - will be migrated to use levelManager)
         this.currentLevel = null;
         this.currentLevelNumber = 1;
         this.totalLevels = LEVEL.WORLD_1_LEVELS;
+        this.currentWorld = 1;
 
-        this.keys = {};
-        this.gameState = GAME_STATES.MENU;
+        // Black hole effect
         this.suckProgress = 0;
 
+        // Timer
         this.levelTime = 0;
         this.timerStarted = false;
         this.timerElement = document.getElementById('timer');
         this.levelInfoElement = document.getElementById('level-info');
 
-        this.setupInputHandlers();
-        this.showLevelSelect();
-
+        // Speedrun
         this.speedrunManager = new SpeedrunManager(this);
         this.isSpeedrunMode = false;
         this.speedrunTime = 0;
 
+        // Goal collision prevention
         this.goalTriggered = false;
         this.goalCooldown = LEVEL.GOAL_COOLDOWN;
 
-        this.projectiles = []; // Array for Turret projectiles
+        // Projectiles
+        this.projectiles = [];
+
+        // Setup
+        this.setupInputHandlers();
+        this.showLevelSelect();
     }
 
     setupInputHandlers() {
-        window.addEventListener('keydown', (e) => {
-            this.keys[e.code] = true;
-            if (e.code === 'Space' && this.gameState !== 'editor') e.preventDefault();
-            
-            // Victory Screen weiterspringen (nur im normalen Modus, nicht im Speedrun)
-            if (this.gameState === 'won' && e.code === 'Space' && !this.isSpeedrunMode) {
+        // Handle key down events
+        this.inputManager.onKeyDown((e) => {
+            if (e.code === 'Space' && !this.stateManager.isEditor()) {
+                e.preventDefault();
+            }
+
+            // Space to continue after victory (normal mode only, not speedrun)
+            if (this.stateManager.isWon() && e.code === 'Space' && !this.isSpeedrunMode) {
                 this.victoryScreen.hide();
                 this.loadNextLevel();
             }
-            
-            // ESC für Level Select
+
+            // Escape key handling
             if (e.code === 'Escape') {
-                if (this.gameState === 'playing') {
-                    if (this.isSpeedrunMode) {
-                        if (confirm('Speedrun abbrechen?')) {
-                            this.exitSpeedrun();
-                        }
-                    } else if (this.levelEditor.isTesting) {
-                        // Return to editor if we were testing
-                        this.returnToEditor();
-                    } else {
-                        this.gameState = 'menu';
-                        this.showLevelSelect();
-                    }
-                } else if (this.gameState === 'won') {
-                    if (this.levelEditor.isTesting) {
-                        // Return to editor if we were testing
-                        this.returnToEditor();
-                    } else {
-                        this.victoryScreen.hide();
-                        this.showLevelSelect();
-                    }
-                } else if (this.gameState === 'dead') {
-                    if (this.levelEditor.isTesting) {
-                        // Return to editor if we were testing
-                        this.returnToEditor();
-                    }
-                } else if (this.gameState === 'editor') {
-                    this.levelEditor.close();
-                }
+                this.handleEscapeKey();
             }
-            
-            // E für Editor
-            if (e.code === 'KeyE' && this.gameState === 'menu') {
+
+            // E to open editor
+            if (e.code === 'KeyE' && this.stateManager.isMenu()) {
                 this.levelSelect.hide();
                 this.levelEditor.open();
             }
         });
+    }
 
-        window.addEventListener('keyup', (e) => {
-            this.keys[e.code] = false;
-        });
+    handleEscapeKey() {
+        if (this.stateManager.isPlaying()) {
+            if (this.isSpeedrunMode) {
+                if (confirm('Abort speedrun?')) {
+                    this.exitSpeedrun();
+                }
+            } else if (this.levelEditor.isTesting) {
+                this.returnToEditor();
+            } else {
+                this.stateManager.setState(GAME_STATES.MENU);
+                this.showLevelSelect();
+            }
+        } else if (this.stateManager.isWon()) {
+            if (this.levelEditor.isTesting) {
+                this.returnToEditor();
+            } else {
+                this.victoryScreen.hide();
+                this.showLevelSelect();
+            }
+        } else if (this.stateManager.isDead()) {
+            if (this.levelEditor.isTesting) {
+                this.returnToEditor();
+            }
+        } else if (this.stateManager.isEditor()) {
+            this.levelEditor.close();
+        }
     }
 
     loadWorld2Level(levelNumber) {
-        const levels = [null, World2Level1, World2Level2, World2Level3, World2Level4, World2Level5, World2Level6, World2Level7, World2Level8, World2Level9];
-        this.currentLevel = new levels[levelNumber]();
-        this.currentLevelNumber = levelNumber + 100;
+        const levelInfo = this.levelManager.loadWorld2Level(levelNumber);
+        this.currentLevel = levelInfo.level;
+        this.currentLevelNumber = this.levelManager.getCurrentLevelNumber();
         this.currentWorld = 2;
-        this.levelInfoElement.textContent = `WORLD 2 - LEVEL ${levelNumber}`;
-
-        // Setze World-2 Theme
-        document.body.className = 'world-2';
-
+        this.levelInfoElement.textContent = levelInfo.displayName;
         this.reset();
     }
 
     loadWorld3Level(levelNumber) {
-        const levels = [null, World3Level1, World3Level2, World3Level3];
-        this.currentLevel = new levels[levelNumber]();
-        this.currentLevelNumber = levelNumber + 200;
+        const levelInfo = this.levelManager.loadWorld3Level(levelNumber);
+        this.currentLevel = levelInfo.level;
+        this.currentLevelNumber = this.levelManager.getCurrentLevelNumber();
         this.currentWorld = 3;
-        this.levelInfoElement.textContent = `WORLD 3 - LEVEL ${levelNumber}`;
-
-        // Setze World-3 Theme
-        document.body.className = 'world-3';
-
+        this.levelInfoElement.textContent = levelInfo.displayName;
         this.reset();
     }
 
     loadLevel(levelNumber) {
-        this.currentLevelNumber = levelNumber;
+        const levelInfo = this.levelManager.loadWorld1Level(levelNumber);
+        this.currentLevel = levelInfo.level;
+        this.currentLevelNumber = levelInfo.levelNumber;
         this.currentWorld = 1;
-        
-        const levels = [null, Level1, Level2, Level3, Level4, Level5, Level6, Level7, Level8, Level9];
-        this.currentLevel = new levels[levelNumber]();
-        
+
         if (!this.isSpeedrunMode) {
-            this.levelInfoElement.textContent = `LEVEL ${levelNumber}`;
+            this.levelInfoElement.textContent = levelInfo.displayName;
         }
-        
-        // Setze World-1 Theme
-        document.body.className = 'world-1';
-        
+
         this.reset();
     }
 
     loadCustomLevel(levelData) {
-        this.currentLevel = levelData;
+        const levelInfo = this.levelManager.loadCustomLevel(levelData);
+        this.currentLevel = levelInfo.level;
         this.currentLevelNumber = 0;
-        this.levelInfoElement.textContent = levelData.name;
-        
-        // Custom Levels = World 1 Theme
-        document.body.className = 'world-1';
-        
+        this.currentWorld = 1;
+        this.levelInfoElement.textContent = levelInfo.displayName;
         this.reset();
     }
 
     showLevelSelect() {
-        this.gameState = 'menu';
-        
-        // Setze Theme basierend auf aktueller Welt
-        if (this.currentWorld === 2) {
-            document.body.className = 'world-2';
-        } else if (this.currentWorld === 3) {
-            document.body.className = 'world-3';
-        } else {
-            document.body.className = 'world-1';
-        }
-        
+        this.stateManager.setState(GAME_STATES.MENU);
+
+        // Set theme based on current world
+        this.levelManager.setWorldTheme(this.currentWorld);
+
         this.levelSelect.show((levelNumber, customLevel, worldData) => {
             if (worldData) {
                 if (worldData.world === 2) {
@@ -212,8 +189,23 @@ export class Game {
     }
 
     loadNextLevel() {
+        if (this.levelManager.hasNextLevel()) {
+            const nextLevelInfo = this.levelManager.loadNextLevel();
+            this.currentLevel = nextLevelInfo.level;
+            this.currentLevelNumber = this.levelManager.getCurrentLevelNumber();
+            this.currentWorld = nextLevelInfo.world;
+            this.levelInfoElement.textContent = nextLevelInfo.displayName;
+            this.reset();
+        } else {
+            // No more levels, return to menu
+            this.showLevelSelect();
+        }
+    }
+
+    // Legacy method kept for compatibility
+    _loadNextLevelOld() {
         if (this.currentWorld === 3) {
-            // World 3 - 3 levels (for now)
+            // World 3
             if (this.currentLevelNumber < 203) {
                 const nextLevel = (this.currentLevelNumber - 200) + 1;
                 this.loadWorld3Level(nextLevel);
@@ -221,7 +213,7 @@ export class Game {
                 this.showLevelSelect();
             }
         } else if (this.currentWorld === 2) {
-            // World 2 - 9 Level
+            // World 2
             if (this.currentLevelNumber < 109) {
                 const nextLevel = (this.currentLevelNumber - 100) + 1;
                 this.loadWorld2Level(nextLevel);
@@ -352,21 +344,22 @@ export class Game {
     }
 
     update(deltaTime) {
-        if (this.gameState === 'menu' || this.gameState === 'editor' || this.gameState === 'speedrun-finished') {
+        // Skip update for menu, editor, or finished states
+        if (this.stateManager.isMenu() || this.stateManager.isEditor() || this.stateManager.getState() === 'speedrun-finished') {
             return;
         }
 
-        if (this.gameState === 'dead') {
+        if (this.stateManager.isDead()) {
             this.particleSystem.update(deltaTime);
             return;
         }
 
-        if (this.gameState === 'sucking') {
+        if (this.stateManager.isSucking()) {
             this.updateSuckEffect(deltaTime);
             return;
         }
 
-        if (this.gameState === 'won') {
+        if (this.stateManager.isWon()) {
             return;
         }
 
@@ -424,11 +417,12 @@ export class Game {
             }
         }
 
-        // Input handling - MIT INPUT-LOCK CHECK und GLUE PLATFORM
+        // Input handling - with input lock check
+        const rawInput = this.inputManager.getPlayerInput();
         const input = {
-            left: !this.inputLocked && (this.keys['ArrowLeft'] || this.keys['KeyA']),
-            right: !this.inputLocked && (this.keys['ArrowRight'] || this.keys['KeyD']),
-            jump: !this.inputLocked && this.keys['Space']
+            left: !this.inputLocked && rawInput.left,
+            right: !this.inputLocked && rawInput.right,
+            jump: !this.inputLocked && rawInput.jump
         };
 
         // Timer
@@ -721,7 +715,7 @@ export class Game {
     }
 
     handleBlackHoleDeath(holeX, holeY) {
-        this.gameState = 'dead';
+        this.stateManager.setState(GAME_STATES.DEAD);
         
         const playerCenterX = this.player.x + this.player.width / 2;
         const playerCenterY = this.player.y + this.player.height / 2;
@@ -794,17 +788,17 @@ export class Game {
         
         this.particleSystem.update(deltaTime);
         
-        // Nach 0.5 Sekunden: Level gewonnen
+        // After 0.5 seconds: Level won
         if (this.suckProgress >= 0.5) {
-            this.gameState = 'won';
+            this.stateManager.setState(GAME_STATES.WON);
             this.showVictoryScreen();
         }
     }
 
     showVictoryScreen() {
         if (this.isSpeedrunMode) {
-            // Im Speedrun-Modus: Zeige nur kurzen Übergang
-            this.gameState = 'won';
+            // In speedrun mode: Show only short transition
+            this.stateManager.setState(GAME_STATES.WON);
             
             setTimeout(() => {
                 // Check if speedrun is complete
