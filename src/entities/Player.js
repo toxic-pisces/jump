@@ -1,17 +1,19 @@
+import { PLAYER } from '../config/Constants.js';
+
 export class Player {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.width = 40;
-        this.height = 40;
-        
+        this.width = PLAYER.WIDTH;
+        this.height = PLAYER.HEIGHT;
+
         this.velocityX = 0;
         this.velocityY = 0;
-        this.lastVelocityY = 0; // Für Squash-Effekt
-        
-        this.speed = 300;
-        this.jumpForce = -600;
-        this.maxJumps = 2;
+        this.lastVelocityY = 0; // For squash effect
+
+        this.speed = PLAYER.SPEED;
+        this.jumpForce = PLAYER.JUMP_FORCE;
+        this.maxJumps = PLAYER.MAX_JUMPS;
         this.jumpCount = 0;
         
         this.isGrounded = false;
@@ -63,25 +65,25 @@ export class Player {
         }
         this.lastJumpPress = input.jump;
 
-        // Rotation - NUR in der Luft!
+        // Rotation - only while airborne
         if (!this.isGrounded) {
             const direction = this.velocityX >= 0 ? 1 : -1;
-            this.rotation += direction * 8 * deltaTime;
+            this.rotation += direction * PLAYER.ROTATION_SPEED * deltaTime;
         } else {
-            // Am Boden: snap zur nächsten 90° Kante
+            // On ground: snap to nearest 90° edge
             const snapAngle = Math.PI / 2;
             const targetRotation = Math.round(this.rotation / snapAngle) * snapAngle;
             const diff = targetRotation - this.rotation;
-            
-            if (Math.abs(diff) > 0.01) {
-                this.rotation += diff * 15 * deltaTime;
+
+            if (Math.abs(diff) > PLAYER.ROTATION_SNAP_THRESHOLD) {
+                this.rotation += diff * PLAYER.ROTATION_SNAP_SPEED * deltaTime;
             } else {
                 this.rotation = targetRotation;
             }
-            
-            // Landing-Effekt Timer - NUR beim ersten Aufprall
+
+            // Landing effect timer - only on first impact
             if (!this.wasGrounded && this.isGrounded) {
-                this.landingTime = 0.15; // 150ms Bounce
+                this.landingTime = PLAYER.LANDING_DURATION;
             }
         }
         

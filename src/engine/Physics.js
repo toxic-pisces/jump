@@ -1,6 +1,8 @@
+import { PHYSICS } from '../config/Constants.js';
+
 export class Physics {
     constructor() {
-        this.gravity = 1500;
+        this.gravity = PHYSICS.GRAVITY;
     }
 
     applyGravity(entity, deltaTime) {

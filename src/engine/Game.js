@@ -1,6 +1,7 @@
 import { Renderer } from './Renderer.js';
 import { Physics } from './Physics.js';
 import { Player } from '../entities/Player.js';
+import { CANVAS, PLAYER, LEVEL, GAME_STATES } from '../config/Constants.js';
 import { Level1 } from '../levels/Level1.js';
 import { Level2 } from '../levels/Level2.js';
 import { Level3 } from '../levels/Level3.js';
@@ -32,8 +33,8 @@ import { SpeedrunManager } from '../speedrun/SpeedrunManager.js';
 export class Game {
     constructor(canvas) {
         this.canvas = canvas;
-        this.canvas.width = 1200;
-        this.canvas.height = 700;
+        this.canvas.width = CANVAS.WIDTH;
+        this.canvas.height = CANVAS.HEIGHT;
 
         this.renderer = new Renderer(canvas);
         this.physics = new Physics();
@@ -42,36 +43,36 @@ export class Game {
         this.levelSelect = new LevelSelect();
         this.challengesMenu = new ChallengesMenu();
         this.levelEditor = new LevelEditor(canvas, this);
-        
-        // Setze Game-Referenz für LevelSelect und ChallengesMenu
+
+        // Set Game reference for LevelSelect and ChallengesMenu
         this.levelSelect.setGame(this);
         this.challengesMenu.setGame(this);
-        
-        this.player = new Player(100, 500);
+
+        this.player = new Player(PLAYER.DEFAULT_SPAWN_X, PLAYER.DEFAULT_SPAWN_Y);
         this.currentLevel = null;
         this.currentLevelNumber = 1;
-        this.totalLevels = 9; // Nur noch 9 Level
-        
+        this.totalLevels = LEVEL.WORLD_1_LEVELS;
+
         this.keys = {};
-        this.gameState = 'menu'; // menu, playing, dead, won, sucking, editor
+        this.gameState = GAME_STATES.MENU;
         this.suckProgress = 0;
-        
+
         this.levelTime = 0;
         this.timerStarted = false;
         this.timerElement = document.getElementById('timer');
         this.levelInfoElement = document.getElementById('level-info');
-        
+
         this.setupInputHandlers();
         this.showLevelSelect();
-        
+
         this.speedrunManager = new SpeedrunManager(this);
         this.isSpeedrunMode = false;
         this.speedrunTime = 0;
 
         this.goalTriggered = false;
-        this.goalCooldown = 1.0; // 1 Sekunde Cooldown nach Level-Start
+        this.goalCooldown = LEVEL.GOAL_COOLDOWN;
 
-        this.projectiles = []; // Array für Turret-Projektile
+        this.projectiles = []; // Array for Turret projectiles
     }
 
     setupInputHandlers() {
