@@ -168,16 +168,17 @@ export class LevelSelect {
         const rightArrow = this.createPixelArrow('right');
         const nextWorld = this.currentWorld + 1;
         const isNextWorldUnlocked = this.game?.progressionManager?.isWorldUnlocked(nextWorld) ?? true;
-        
+
         if (this.currentWorld < this.totalWorlds) {
             if (isNextWorldUnlocked) {
                 rightArrow.onclick = () => this.changeWorld(nextWorld);
+                navContainer.appendChild(rightArrow);
             } else {
                 // Show locked arrow
                 rightArrow.style.opacity = '0.3';
                 rightArrow.style.pointerEvents = 'none';
                 rightArrow.style.filter = 'grayscale(100%)';
-                
+
                 // Add pixel lock overlay
                 const lockCanvas = document.createElement('canvas');
                 lockCanvas.width = 24;
@@ -194,14 +195,13 @@ export class LevelSelect {
                 lockWrapper.appendChild(rightArrow);
                 lockWrapper.appendChild(lockCanvas);
                 navContainer.appendChild(lockWrapper);
-                return; // Don't append rightArrow again
             }
         } else {
             rightArrow.style.opacity = '0';
             rightArrow.style.pointerEvents = 'none';
+            navContainer.appendChild(rightArrow);
         }
-        navContainer.appendChild(rightArrow);
-        
+
         this.element.querySelector('.level-select-content').appendChild(navContainer);
     }
 
