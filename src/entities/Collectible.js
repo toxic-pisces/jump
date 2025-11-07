@@ -152,6 +152,12 @@ export class Collectible {
         ctx.globalAlpha = 1;
     }
 
+    reset() {
+        this.collected = false;
+        this.particles = [];
+        this.animationTime = 0;
+    }
+
     getWorldColor() {
         switch (this.world) {
             case 2:

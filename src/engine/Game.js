@@ -670,6 +670,26 @@ export class Game {
                 }
             }
 
+            // Check moving platforms
+            if (!hitPlatform && this.currentLevel.movingPlatforms) {
+                for (let platform of this.currentLevel.movingPlatforms) {
+                    if (this.physics.checkAABB(projectile, platform)) {
+                        hitPlatform = true;
+                        break;
+                    }
+                }
+            }
+
+            // Check pressure platforms
+            if (!hitPlatform && this.currentLevel.pressurePlatforms) {
+                for (let platform of this.currentLevel.pressurePlatforms) {
+                    if (this.physics.checkAABB(projectile, platform)) {
+                        hitPlatform = true;
+                        break;
+                    }
+                }
+            }
+
             // If projectile hit a platform, create particles and remove it
             if (hitPlatform) {
                 // Create impact particles
@@ -1540,6 +1560,23 @@ export class Game {
             this.currentLevel.triggeredSpikes.forEach(spike => {
                 spike.reset();
             });
+        }
+
+        if (this.currentLevel?.turrets) {
+            this.currentLevel.turrets.forEach(turret => {
+                turret.reset();
+            });
+        }
+
+        if (this.currentLevel?.collectible) {
+            this.currentLevel.collectible.reset();
+        }
+
+        // Update timer display immediately to show reset time
+        if (this.isSpeedrunMode) {
+            this.updateSpeedrunTimer();
+        } else {
+            this.updateTimer();
         }
     }
 

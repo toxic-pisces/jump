@@ -34,6 +34,12 @@ export class Turret {
         return null;
     }
 
+    reset() {
+        this.timeSinceLastShot = 0;
+        this.isCharging = false;
+        this.chargeProgress = 0;
+    }
+
     createProjectile() {
         const centerX = this.x + this.width / 2;
         const centerY = this.y + this.height / 2;
