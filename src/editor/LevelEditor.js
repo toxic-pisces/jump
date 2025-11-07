@@ -806,7 +806,8 @@ export class LevelEditor {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        const filename = world === 1 ? `Level${levelNum}.js` : `World2Level${levelNum}.js`;
+        const filename = world === 1 ? `Level${levelNum}.js` :
+                         world === 3 ? `World3Level${levelNum}.js` : `World2Level${levelNum}.js`;
         a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
@@ -823,11 +824,27 @@ export class LevelEditor {
         if (level.crumblingPlatforms && level.crumblingPlatforms.length > 0) {
             imports.push(`import { CrumblingPlatform } from '../entities/CrumblingPlatform.js';`);
         }
+        if (level.blinkingPlatforms && level.blinkingPlatforms.length > 0) {
+            imports.push(`import { BlinkingPlatform } from '../entities/BlinkingPlatform.js';`);
+        }
+        if (level.movingPlatforms && level.movingPlatforms.length > 0) {
+            imports.push(`import { MovingPlatform } from '../entities/MovingPlatform.js';`);
+        }
+        if (level.pressurePlatforms && level.pressurePlatforms.length > 0) {
+            imports.push(`import { PressurePlatform } from '../entities/PressurePlatform.js';`);
+        }
+        if (level.triggeredSpikes && level.triggeredSpikes.length > 0) {
+            imports.push(`import { TriggeredSpikes } from '../entities/TriggeredSpikes.js';`);
+        }
         if (level.turrets && level.turrets.length > 0) {
             imports.push(`import { Turret } from '../entities/Turret.js';`);
         }
+        if (level.collectible) {
+            imports.push(`import { Collectible } from '../entities/Collectible.js';`);
+        }
 
-        const className = world === 1 ? `Level${levelNum}` : `World2Level${levelNum}`;
+        const className = world === 1 ? `Level${levelNum}` :
+                          world === 3 ? `World3Level${levelNum}` : `World2Level${levelNum}`;
 
         let code = imports.join('\n') + '\n\n';
         code += `export class ${className} {\n`;
@@ -835,6 +852,8 @@ export class LevelEditor {
         code += `        this.name = "${level.name}";\n`;
         if (world === 2) {
             code += `        this.world = 2;\n`;
+        } else if (world === 3) {
+            code += `        this.world = 3;\n`;
         }
         code += `        this.start = { x: ${level.start.x}, y: ${level.start.y}, width: ${level.start.width}, height: ${level.start.height} };\n`;
         code += `        this.goal = { x: ${level.goal.x}, y: ${level.goal.y}, width: ${level.goal.width}, height: ${level.goal.height} };\n\n`;
@@ -926,7 +945,41 @@ export class LevelEditor {
                 code += `            },\n`;
             });
         }
+        code += `        ];\n\n`;
+
+        // Moving Platforms
+        code += `        this.movingPlatforms = [\n`;
+        if (level.movingPlatforms && level.movingPlatforms.length > 0) {
+            level.movingPlatforms.forEach(p => {
+                code += `            new MovingPlatform(${p.x}, ${p.y}, ${p.width}, ${p.height}, '${p.direction}', ${p.distance}, ${p.speed}),\n`;
+            });
+        }
+        code += `        ];\n\n`;
+
+        // Pressure Platforms
+        code += `        this.pressurePlatforms = [\n`;
+        if (level.pressurePlatforms && level.pressurePlatforms.length > 0) {
+            level.pressurePlatforms.forEach(p => {
+                code += `            new PressurePlatform(${p.x}, ${p.y}, ${p.width}, ${p.height}),\n`;
+            });
+        }
+        code += `        ];\n\n`;
+
+        // Triggered Spikes
+        code += `        this.triggeredSpikes = [\n`;
+        if (level.triggeredSpikes && level.triggeredSpikes.length > 0) {
+            level.triggeredSpikes.forEach(ts => {
+                const idParam = ts.id ? `'${ts.id}'` : 'null';
+                code += `            new TriggeredSpikes(${ts.x}, ${ts.y}, ${ts.width}, ${ts.height}, ${idParam}, ${ts.riseTime}, ${ts.stayTime}),\n`;
+            });
+        }
         code += `        ];\n`;
+
+        // Collectible
+        if (level.collectible) {
+            code += `\n        // Collectible - placed for extra challenge\n`;
+            code += `        this.collectible = new Collectible(${level.collectible.x}, ${level.collectible.y}, ${world});\n`;
+        }
 
         code += `    }\n`;
         code += `}\n`;
