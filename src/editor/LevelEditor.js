@@ -848,6 +848,8 @@ export class LevelEditor {
         container.style.margin = '';
         container.style.marginRight = '';
         container.style.flexShrink = '';
+        container.style.width = '';
+        container.style.height = '';
 
         // Restore sidebar position
         const sidebar = document.getElementById('editor-sidebar');
@@ -937,6 +939,8 @@ export class LevelEditor {
         container.style.margin = '20px';
         container.style.marginRight = '0';
         container.style.flexShrink = '0';
+        container.style.width = `${this.originalWidth * scale}px`;
+        container.style.height = `${this.originalHeight * scale}px`;
 
         // Make sidebar position relative (not absolute) so it sits beside the canvas
         const sidebar = document.getElementById('editor-sidebar');
@@ -979,6 +983,8 @@ export class LevelEditor {
         container.style.margin = '';
         container.style.marginRight = '';
         container.style.flexShrink = '';
+        container.style.width = '';
+        container.style.height = '';
 
         // Restore sidebar to absolute positioning
         const sidebar = document.getElementById('editor-sidebar');
