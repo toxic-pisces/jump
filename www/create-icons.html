@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create App Icons</title>
+</head>
+<body>
+    <h1>Icon Generator - Klick to Download</h1>
+    <button id="generate">Generate Icons</button>
+    <div id="output"></div>
+    
+    <script>
+        document.getElementById('generate').onclick = function() {
+            // 192x192
+            const canvas192 = document.createElement('canvas');
+            canvas192.width = 192;
+            canvas192.height = 192;
+            const ctx192 = canvas192.getContext('2d');
+            
+            // Background
+            ctx192.fillStyle = '#000000';
+            ctx192.fillRect(0, 0, 192, 192);
+            
+            // Gradient
+            const grad192 = ctx192.createLinearGradient(36, 36, 156, 156);
+            grad192.addColorStop(0, '#FFB3D9');
+            grad192.addColorStop(1, '#FF8FC7');
+            
+            // Main cube
+            ctx192.fillStyle = grad192;
+            ctx192.fillRect(36, 36, 120, 120);
+            
+            // Border
+            ctx192.strokeStyle = '#FF6BB5';
+            ctx192.lineWidth = 8;
+            ctx192.strokeRect(36, 36, 120, 120);
+            
+            // Highlight
+            ctx192.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx192.fillRect(46, 46, 72, 12);
+            
+            // Eyes
+            ctx192.fillStyle = '#000000';
+            ctx192.fillRect(71, 81, 10, 10);
+            ctx192.fillRect(111, 81, 10, 10);
+            
+            // Download
+            canvas192.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'icon-192.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+            
+            // 512x512
+            setTimeout(() => {
+                const canvas512 = document.createElement('canvas');
+                canvas512.width = 512;
+                canvas512.height = 512;
+                const ctx512 = canvas512.getContext('2d');
+                
+                // Background
+                ctx512.fillStyle = '#000000';
+                ctx512.fillRect(0, 0, 512, 512);
+                
+                // Gradient
+                const grad512 = ctx512.createLinearGradient(96, 96, 416, 416);
+                grad512.addColorStop(0, '#FFB3D9');
+                grad512.addColorStop(1, '#FF8FC7');
+                
+                // Main cube
+                ctx512.fillStyle = grad512;
+                ctx512.fillRect(96, 96, 320, 320);
+                
+                // Border
+                ctx512.strokeStyle = '#FF6BB5';
+                ctx512.lineWidth = 20;
+                ctx512.strokeRect(96, 96, 320, 320);
+                
+                // Highlight
+                ctx512.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx512.fillRect(116, 116, 192, 32);
+                
+                // Eyes
+                ctx512.fillStyle = '#000000';
+                ctx512.fillRect(191, 221, 26, 26);
+                ctx512.fillRect(295, 221, 26, 26);
+                
+                // Download
+                canvas512.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'icon-512.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    alert('Icons downloaded! Move them to your game folder.');
+                });
+            }, 500);
+        };
+    </script>
+</body>
+</html>

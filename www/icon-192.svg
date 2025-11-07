@@ -1,0 +1,22 @@
+<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="192" height="192" fill="#000000"/>
+  
+  <!-- Cube -->
+  <defs>
+    <linearGradient id="cubeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFB3D9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF8FC7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main Cube -->
+  <rect x="36" y="36" width="120" height="120" fill="url(#cubeGrad)" stroke="#FF6BB5" stroke-width="8"/>
+  
+  <!-- Highlight -->
+  <rect x="46" y="46" width="72" height="12" fill="rgba(255,255,255,0.3)"/>
+  
+  <!-- Eyes -->
+  <rect x="71" y="81" width="10" height="10" fill="#000000"/>
+  <rect x="111" y="81" width="10" height="10" fill="#000000"/>
+</svg>

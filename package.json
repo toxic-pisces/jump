@@ -1,0 +1,17 @@
+{
+  "name": "jump!",
+  "version": "1.0.0",
+  "description": "A challenging 2D platformer game built with vanilla JavaScript and HTML5 Canvas. Guide a pink cube through increasingly difficult levels filled with various obstacles, platforms, and hazards.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4"
+  }
+}

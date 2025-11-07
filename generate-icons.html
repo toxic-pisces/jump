@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+</head>
+<body>
+    <canvas id="icon-192" width="192" height="192"></canvas>
+    <canvas id="icon-512" width="512" height="512"></canvas>
+    
+    <script>
+        // 192x192 Icon
+        const canvas192 = document.getElementById('icon-192');
+        const ctx192 = canvas192.getContext('2d');
+        
+        // Hintergrund
+        ctx192.fillStyle = '#000000';
+        ctx192.fillRect(0, 0, 192, 192);
+        
+        // Cube (Pink)
+        const size192 = 120;
+        const x192 = 96;
+        const y192 = 96;
+        
+        const gradient192 = ctx192.createLinearGradient(x192 - size192/2, y192 - size192/2, x192 + size192/2, y192 + size192/2);
+        gradient192.addColorStop(0, '#FFB3D9');
+        gradient192.addColorStop(1, '#FF8FC7');
+        
+        ctx192.fillStyle = gradient192;
+        ctx192.fillRect(x192 - size192/2, y192 - size192/2, size192, size192);
+        
+        // Border
+        ctx192.strokeStyle = '#FF6BB5';
+        ctx192.lineWidth = 8;
+        ctx192.strokeRect(x192 - size192/2, y192 - size192/2, size192, size192);
+        
+        // Eyes
+        const eyeSize192 = 10;
+        const eyeSpacing192 = 25;
+        ctx192.fillStyle = '#000000';
+        ctx192.fillRect(x192 - eyeSpacing192, y192 - 15, eyeSize192, eyeSize192);
+        ctx192.fillRect(x192 + eyeSpacing192 - eyeSize192, y192 - 15, eyeSize192, eyeSize192);
+        
+        // Download 192
+        canvas192.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'icon-192.png';
+            a.click();
+        });
+        
+        // 512x512 Icon
+        const canvas512 = document.getElementById('icon-512');
+        const ctx512 = canvas512.getContext('2d');
+        
+        // Hintergrund
+        ctx512.fillStyle = '#000000';
+        ctx512.fillRect(0, 0, 512, 512);
+        
+        // Cube (Pink)
+        const size512 = 320;
+        const x512 = 256;
+        const y512 = 256;
+        
+        const gradient512 = ctx512.createLinearGradient(x512 - size512/2, y512 - size512/2, x512 + size512/2, y512 + size512/2);
+        gradient512.addColorStop(0, '#FFB3D9');
+        gradient512.addColorStop(1, '#FF8FC7');
+        
+        ctx512.fillStyle = gradient512;
+        ctx512.fillRect(x512 - size512/2, y512 - size512/2, size512, size512);
+        
+        // Border
+        ctx512.strokeStyle = '#FF6BB5';
+        ctx512.lineWidth = 20;
+        ctx512.strokeRect(x512 - size512/2, y512 - size512/2, size512, size512);
+        
+        // Highlight
+        ctx512.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx512.fillRect(x512 - size512/2 + 20, y512 - size512/2 + 20, size512 * 0.6, size512 * 0.1);
+        
+        // Eyes
+        const eyeSize512 = 26;
+        const eyeSpacing512 = 65;
+        ctx512.fillStyle = '#000000';
+        ctx512.fillRect(x512 - eyeSpacing512, y512 - 35, eyeSize512, eyeSize512);
+        ctx512.fillRect(x512 + eyeSpacing512 - eyeSize512, y512 - 35, eyeSize512, eyeSize512);
+        
+        // Download 512
+        setTimeout(() => {
+            canvas512.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'icon-512.png';
+                a.click();
+            });
+        }, 100);
+    </script>
+</body>
+</html>

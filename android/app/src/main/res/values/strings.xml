@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Jump! Platformer</string>
+    <string name="title_activity_main">Jump! Platformer</string>
+    <string name="package_name">com.jump.platformer</string>
+    <string name="custom_url_scheme">com.jump.platformer</string>
+</resources>
