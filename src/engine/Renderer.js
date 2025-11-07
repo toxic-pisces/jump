@@ -545,39 +545,82 @@ export class Renderer {
             
             // Schatten - only on free edges
             if (!hasNeighborRight && !hasNeighborBelow) {
-                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-                this.ctx.fillRect(platform.x + 3, platform.y + 3, platform.width, platform.height);
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                this.ctx.fillRect(platform.x + 4, platform.y + 4, platform.width, platform.height);
             }
 
-            // Main platform body - dark base
-            this.ctx.fillStyle = '#1A1A1A';
-            this.ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+            // Draw platform with blocky stone texture (4px pixels like spikes)
+            const pixelSize = 4;
+            const totalGridWidth = platform.width / pixelSize;
+            const totalGridHeight = platform.height / pixelSize;
 
-            // Add clean pixel blocks for texture (8x8 pixels)
-            const blockSize = 8;
-            this.ctx.fillStyle = '#2A2A2A';
+            for (let sy = 0; sy < platform.height; sy += pixelSize) {
+                for (let sx = 0; sx < platform.width; sx += pixelSize) {
+                    const x = (hasNeighborLeft ? platform.x - 3 : platform.x) + sx;
+                    const y = (hasNeighborAbove ? platform.y - 3 : platform.y) + sy;
 
-            for (let py = drawY; py < drawY + drawHeight; py += blockSize) {
-                for (let px = drawX; px < drawX + drawWidth; px += blockSize) {
-                    // Checkerboard pattern
-                    const checkX = Math.floor((px - drawX) / blockSize);
-                    const checkY = Math.floor((py - drawY) / blockSize);
-                    if ((checkX + checkY) % 2 === 0) {
-                        this.ctx.fillRect(px, py, blockSize, blockSize);
+                    // Don't draw if this pixel is in the neighbor overlap zone
+                    if (hasNeighborLeft && sx < 3) continue;
+                    if (hasNeighborAbove && sy < 3) continue;
+                    if (hasNeighborRight && sx >= platform.width - 3) continue;
+                    if (hasNeighborBelow && sy >= platform.height - 3) continue;
+
+                    // Grid position for pattern
+                    const gridX = sx / pixelSize;
+                    const gridY = sy / pixelSize;
+
+                    // Position ratios for gradients
+                    const verticalPos = gridY / totalGridHeight;
+                    const horizontalPos = gridX / totalGridWidth;
+
+                    let color;
+
+                    // Create natural stone gradient - lighter at top, darker at bottom
+                    if (verticalPos < 0.25) {
+                        // Top - lightest stone
+                        if ((gridX + gridY) % 2 === 0) {
+                            color = '#404040'; // Light gray
+                        } else {
+                            color = '#353535'; // Medium-light gray
+                        }
+                    } else if (verticalPos < 0.5) {
+                        // Upper middle - medium stone
+                        if ((gridX + gridY) % 3 === 0) {
+                            color = '#303030';
+                        } else if ((gridX + gridY) % 2 === 0) {
+                            color = '#2A2A2A';
+                        } else {
+                            color = '#252525';
+                        }
+                    } else if (verticalPos < 0.75) {
+                        // Lower middle - darker stone
+                        if ((gridX + gridY) % 2 === 0) {
+                            color = '#222222';
+                        } else {
+                            color = '#1A1A1A';
+                        }
+                    } else {
+                        // Bottom - darkest
+                        color = '#151515';
                     }
+
+                    // Add edge highlights and shadows (only on free edges)
+                    if (!hasNeighborAbove && gridY === 0) {
+                        color = '#505050'; // Bright top edge
+                    }
+                    if (!hasNeighborBelow && sy >= platform.height - pixelSize) {
+                        color = '#0A0A0A'; // Dark bottom edge
+                    }
+                    if (!hasNeighborLeft && gridX === 0) {
+                        color = verticalPos < 0.5 ? '#383838' : '#1A1A1A'; // Left edge gradient
+                    }
+                    if (!hasNeighborRight && sx >= platform.width - pixelSize) {
+                        color = '#0F0F0F'; // Dark right edge
+                    }
+
+                    this.ctx.fillStyle = color;
+                    this.ctx.fillRect(x, y, pixelSize, pixelSize);
                 }
-            }
-
-            // Clean top highlight stripe (only if no neighbor above)
-            if (!hasNeighborAbove) {
-                this.ctx.fillStyle = '#3A3A3A';
-                this.ctx.fillRect(platform.x, platform.y, platform.width, 4);
-            }
-
-            // Clean bottom shadow stripe (only if no neighbor below)
-            if (!hasNeighborBelow) {
-                this.ctx.fillStyle = '#0A0A0A';
-                this.ctx.fillRect(platform.x, platform.y + platform.height - 4, platform.width, 4);
             }
         }
 
