@@ -3,6 +3,10 @@ import { CrumblingPlatform } from '../entities/CrumblingPlatform.js';
 import { GluePlatform } from '../entities/GluePlatform.js';
 import { BlinkingPlatform } from '../entities/BlinkingPlatform.js';
 import { Turret } from '../entities/Turret.js';
+import { MovingPlatform } from '../entities/MovingPlatform.js';
+import { Collectible } from '../entities/Collectible.js';
+import { PressurePlatform } from '../entities/PressurePlatform.js';
+import { TriggeredSpikes } from '../entities/TriggeredSpikes.js';
 
 export class LevelEditor {
     constructor(canvas, game) {
@@ -20,10 +24,14 @@ export class LevelEditor {
         this.gluePlatforms = [];
         this.crumblingPlatforms = [];
         this.blinkingPlatforms = [];
+        this.movingPlatforms = [];
+        this.pressurePlatforms = [];
         this.spikes = [];
         this.movingSpikes = [];
+        this.triggeredSpikes = [];
         this.turrets = [];
         this.blackHoles = [];
+        this.collectible = null; // Single collectible per level
 
         this.start = { x: 50, y: 600, width: 80, height: 100 };
         this.goal = { x: 1070, y: 50, width: 80, height: 100 };
@@ -85,10 +93,14 @@ export class LevelEditor {
                     <button class="tool-btn" data-tool="gluePlatform">Glue Platform</button>
                     <button class="tool-btn" data-tool="crumblingPlatform">Crumbling</button>
                     <button class="tool-btn" data-tool="blinkingPlatform">Blinking</button>
+                    <button class="tool-btn" data-tool="movingPlatform">Moving Platform</button>
+                    <button class="tool-btn" data-tool="pressurePlatform">Pressure Platform</button>
                     <button class="tool-btn" data-tool="spike">Spike</button>
                     <button class="tool-btn" data-tool="movingSpike">Moving Spike</button>
+                    <button class="tool-btn" data-tool="triggeredSpikes">Triggered Spikes</button>
                     <button class="tool-btn" data-tool="turret">Turret</button>
                     <button class="tool-btn" data-tool="blackHole">Black Hole</button>
+                    <button class="tool-btn" data-tool="collectible">Collectible</button>
                     <button class="tool-btn" data-tool="start">Start Position</button>
                     <button class="tool-btn" data-tool="goal">Goal Position</button>
                 </div>
@@ -252,10 +264,14 @@ export class LevelEditor {
         this.gluePlatforms = [];
         this.crumblingPlatforms = [];
         this.blinkingPlatforms = [];
+        this.movingPlatforms = [];
+        this.pressurePlatforms = [];
         this.spikes = [];
         this.movingSpikes = [];
+        this.triggeredSpikes = [];
         this.turrets = [];
         this.blackHoles = [];
+        this.collectible = null;
 
         // Load level data
         this.levelName = level.name || 'Custom Level';
@@ -325,6 +341,48 @@ export class LevelEditor {
             this.blackHoles = level.blackHoles.map(bh => ({ ...bh }));
         }
 
+        // Load moving platforms
+        if (level.movingPlatforms) {
+            level.movingPlatforms.forEach(p => {
+                this.movingPlatforms.push({
+                    x: p.x, y: p.y, width: p.width, height: p.height,
+                    direction: p.direction || 'horizontal',
+                    distance: p.distance || 200,
+                    speed: p.speed || 100
+                });
+            });
+        }
+
+        // Load pressure platforms
+        if (level.pressurePlatforms) {
+            level.pressurePlatforms.forEach(p => {
+                this.pressurePlatforms.push({
+                    x: p.x, y: p.y, width: p.width, height: p.height
+                });
+            });
+        }
+
+        // Load triggered spikes
+        if (level.triggeredSpikes) {
+            level.triggeredSpikes.forEach(ts => {
+                this.triggeredSpikes.push({
+                    x: ts.x, y: ts.y, width: ts.width, height: ts.height,
+                    id: ts.id || null,
+                    riseTime: ts.riseTime || 0.3,
+                    stayTime: ts.stayTime || 2.0
+                });
+            });
+        }
+
+        // Load collectible
+        if (level.collectible) {
+            this.collectible = {
+                x: level.collectible.x,
+                y: level.collectible.y,
+                world: level.collectible.world || this.currentWorld
+            };
+        }
+
         // Update UI
         document.getElementById('levelName').value = this.levelName;
         document.getElementById('threeStarTime').value = this.threeStarTime;
@@ -386,13 +444,27 @@ export class LevelEditor {
     }
 
     findElementAtPosition(x, y) {
+        // Check collectible first (single item, not array)
+        if (this.collectible) {
+            const size = 32;
+            const dx = x - this.collectible.x;
+            const dy = y - this.collectible.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < size / 2) {
+                return { type: 'collectible', index: 0, array: null, item: this.collectible };
+            }
+        }
+
         const arrays = [
             { arr: this.platforms, type: 'platform' },
             { arr: this.gluePlatforms, type: 'gluePlatform' },
             { arr: this.crumblingPlatforms, type: 'crumblingPlatform' },
             { arr: this.blinkingPlatforms, type: 'blinkingPlatform' },
+            { arr: this.movingPlatforms, type: 'movingPlatform' },
+            { arr: this.pressurePlatforms, type: 'pressurePlatform' },
             { arr: this.spikes, type: 'spike' },
             { arr: this.movingSpikes, type: 'movingSpike' },
+            { arr: this.triggeredSpikes, type: 'triggeredSpikes' },
             { arr: this.turrets, type: 'turret' },
             { arr: this.blackHoles, type: 'blackHole' }
         ];
@@ -421,7 +493,11 @@ export class LevelEditor {
             this.selectedElement = clickedElement;
             this.draggedElement = clickedElement;
 
-            const el = clickedElement.array[clickedElement.index];
+            // Handle collectible specially
+            const el = clickedElement.type === 'collectible' ?
+                clickedElement.item :
+                clickedElement.array[clickedElement.index];
+
             this.dragOffset = {
                 x: mousePos.x - el.x,
                 y: mousePos.y - el.y
@@ -460,6 +536,13 @@ export class LevelEditor {
                 pullStrength: 800,
                 killRadius: 40
             });
+        } else if (this.currentTool === 'collectible') {
+            // Only one collectible per level
+            this.collectible = {
+                x: gridPos.x,
+                y: gridPos.y,
+                world: this.currentWorld
+            };
         } else {
             // Creating new shape by dragging
             this.isDragging = true;
@@ -478,7 +561,11 @@ export class LevelEditor {
 
         // If dragging an existing element, move it
         if (this.draggedElement) {
-            const el = this.draggedElement.array[this.draggedElement.index];
+            // Handle collectible specially
+            const el = this.draggedElement.type === 'collectible' ?
+                this.draggedElement.item :
+                this.draggedElement.array[this.draggedElement.index];
+
             const gridPos = this.getGridPos(mousePos.x - this.dragOffset.x, mousePos.y - this.dragOffset.y);
             el.x = gridPos.x;
             el.y = gridPos.y;
@@ -529,6 +616,15 @@ export class LevelEditor {
             this.crumblingPlatforms.push({ ...this.currentShape });
         } else if (this.currentTool === 'blinkingPlatform') {
             this.blinkingPlatforms.push({ ...this.currentShape, interval: 2.0, startVisible: true });
+        } else if (this.currentTool === 'movingPlatform') {
+            this.movingPlatforms.push({
+                ...this.currentShape,
+                direction: 'horizontal',
+                distance: 200,
+                speed: 100
+            });
+        } else if (this.currentTool === 'pressurePlatform') {
+            this.pressurePlatforms.push({ ...this.currentShape });
         } else if (this.currentTool === 'spike') {
             this.spikes.push({ ...this.currentShape });
         } else if (this.currentTool === 'movingSpike') {
@@ -538,6 +634,13 @@ export class LevelEditor {
                 endX: this.currentShape.x + 200,
                 speed: 150,
                 direction: 1
+            });
+        } else if (this.currentTool === 'triggeredSpikes') {
+            this.triggeredSpikes.push({
+                ...this.currentShape,
+                id: null,
+                riseTime: 0.3,
+                stayTime: 2.0
             });
         }
 
@@ -552,7 +655,13 @@ export class LevelEditor {
     deleteSelectedElement() {
         if (!this.selectedElement) return;
 
-        this.selectedElement.array.splice(this.selectedElement.index, 1);
+        // Handle collectible specially since it's not in an array
+        if (this.selectedElement.type === 'collectible') {
+            this.collectible = null;
+        } else {
+            this.selectedElement.array.splice(this.selectedElement.index, 1);
+        }
+
         this.selectedElement = null;
         this.updatePropertyPanel();
     }
@@ -672,10 +781,14 @@ export class LevelEditor {
             this.gluePlatforms = [];
             this.crumblingPlatforms = [];
             this.blinkingPlatforms = [];
+            this.movingPlatforms = [];
+            this.pressurePlatforms = [];
             this.spikes = [];
             this.movingSpikes = [];
+            this.triggeredSpikes = [];
             this.turrets = [];
             this.blackHoles = [];
+            this.collectible = null;
             this.selectedElement = null;
             this.updatePropertyPanel();
         }
@@ -894,7 +1007,7 @@ export class LevelEditor {
 
     generateLevelObject() {
         // Create proper class instances for entities that need methods
-        return {
+        const level = {
             name: document.getElementById('levelName').value,
             world: this.currentWorld,
             start: { ...this.start },
@@ -905,11 +1018,21 @@ export class LevelEditor {
             gluePlatforms: this.gluePlatforms.map(p => new GluePlatform(p.x, p.y, p.width, p.height, p.glueFactor)),
             crumblingPlatforms: this.crumblingPlatforms.map(p => new CrumblingPlatform(p.x, p.y, p.width, p.height)),
             blinkingPlatforms: this.blinkingPlatforms.map(p => new BlinkingPlatform(p.x, p.y, p.width, p.height, p.interval, p.startVisible)),
+            movingPlatforms: this.movingPlatforms.map(p => new MovingPlatform(p.x, p.y, p.width, p.height, p.direction, p.distance, p.speed)),
+            pressurePlatforms: this.pressurePlatforms.map(p => new PressurePlatform(p.x, p.y, p.width, p.height)),
             spikes: this.spikes.map(s => ({ ...s })),
             movingSpikes: this.movingSpikes.map(ms => ({ ...ms })),
+            triggeredSpikes: this.triggeredSpikes.map(ts => new TriggeredSpikes(ts.x, ts.y, ts.width, ts.height, ts.id, ts.riseTime, ts.stayTime)),
             turrets: this.turrets.map(t => new Turret(t.x, t.y, t.shootDirection, t.fireRate)),
             blackHoles: this.blackHoles.map(bh => ({ ...bh }))
         };
+
+        // Add collectible if it exists
+        if (this.collectible) {
+            level.collectible = new Collectible(this.collectible.x, this.collectible.y, this.currentWorld);
+        }
+
+        return level;
     }
 
     open() {
@@ -1107,8 +1230,11 @@ export class LevelEditor {
         drawElement(this.gluePlatforms, 'gluePlatform', '#4682B4', '#5FB3D6');
         drawElement(this.crumblingPlatforms, 'crumblingPlatform', '#CD853F', '#DEB887');
         drawElement(this.blinkingPlatforms, 'blinkingPlatform', '#FFD700', '#FFA500');
+        drawElement(this.movingPlatforms, 'movingPlatform', '#8B4513', '#A0522D');
+        drawElement(this.pressurePlatforms, 'pressurePlatform', '#DAA520', '#FFD700');
         drawElement(this.spikes, 'spike', '#DC143C', '#FF6B6B');
         drawElement(this.movingSpikes, 'movingSpike', '#DC143C', '#FF6B6B');
+        drawElement(this.triggeredSpikes, 'triggeredSpikes', '#8B0000', '#DC143C');
         drawElement(this.turrets, 'turret', '#2C5282', '#4682B4');
         drawElement(this.blackHoles, 'blackHole', '#1a1a1a', '#333333');
 
@@ -1119,6 +1245,47 @@ export class LevelEditor {
         // Goal
         this.ctx.fillStyle = '#FFB3D9';
         this.ctx.fillRect(this.goal.x, this.goal.y, this.goal.width, this.goal.height);
+
+        // Collectible
+        if (this.collectible) {
+            const isHovered = this.hoveredElement?.type === 'collectible';
+            const isSelected = this.selectedElement?.type === 'collectible';
+
+            // Determine color based on world
+            let color, hoverColor;
+            switch (this.currentWorld) {
+                case 2:
+                    color = '#87CEEB';
+                    hoverColor = '#B0E0E6';
+                    break;
+                case 3:
+                    color = '#FFD700';
+                    hoverColor = '#FFF59D';
+                    break;
+                default:
+                    color = '#FF69B4';
+                    hoverColor = '#FFB3D9';
+            }
+
+            this.ctx.fillStyle = isHovered ? hoverColor : color;
+            this.ctx.beginPath();
+            this.ctx.arc(this.collectible.x, this.collectible.y, 16, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            if (isSelected) {
+                this.ctx.strokeStyle = '#00FF00';
+                this.ctx.lineWidth = 4;
+                this.ctx.beginPath();
+                this.ctx.arc(this.collectible.x, this.collectible.y, 20, 0, Math.PI * 2);
+                this.ctx.stroke();
+            } else if (isHovered) {
+                this.ctx.strokeStyle = '#FF6B6B';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                this.ctx.arc(this.collectible.x, this.collectible.y, 16, 0, Math.PI * 2);
+                this.ctx.stroke();
+            }
+        }
 
         // Current Shape
         if (this.currentShape) {
