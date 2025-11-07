@@ -912,7 +912,7 @@ export class LevelEditor {
 
     open() {
         this.isActive = true;
-        this.game.gameState = 'editor';
+        this.game.stateManager.setState('editor');
         document.getElementById('editor-sidebar').style.display = 'block';
         this.setupMouseHandlers();
 
