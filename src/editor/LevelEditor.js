@@ -832,7 +832,9 @@ export class LevelEditor {
         document.body.className = this.currentWorld === 3 ? 'world-3' :
                                   this.currentWorld === 2 ? 'world-2' : 'world-1';
 
-        // Restore original canvas size before testing
+        // Restore original canvas size and visibility before testing
+        this.canvas.style.display = 'block';
+        this.canvas.style.background = '#ffffff';
         this.canvas.width = this.originalWidth;
         this.canvas.height = this.originalHeight;
         this.canvas.style.width = `${this.originalWidth}px`;
@@ -916,6 +918,10 @@ export class LevelEditor {
         document.getElementById('editor-sidebar').style.display = 'block';
         this.setupMouseHandlers();
 
+        // Show the canvas
+        this.canvas.style.display = 'block';
+        this.canvas.style.background = '#ffffff';
+
         // Make body use flexbox layout to put canvas and sidebar side by side
         document.body.style.display = 'flex';
         document.body.style.justifyContent = 'flex-start';
@@ -965,7 +971,9 @@ export class LevelEditor {
         this.selectedElement = null;
         this.updatePropertyPanel();
 
-        // Restore original canvas size
+        // Hide and restore original canvas size
+        this.canvas.style.display = '';
+        this.canvas.style.background = '';
         this.canvas.width = this.originalWidth;
         this.canvas.height = this.originalHeight;
         this.canvas.style.width = `${this.originalWidth}px`;
