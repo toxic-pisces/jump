@@ -545,62 +545,39 @@ export class Renderer {
             
             // Schatten - only on free edges
             if (!hasNeighborRight && !hasNeighborBelow) {
-                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-                this.ctx.fillRect(platform.x + 4, platform.y + 4, platform.width, platform.height);
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+                this.ctx.fillRect(platform.x + 3, platform.y + 3, platform.width, platform.height);
             }
 
-            // Main platform base - dark gray
-            this.ctx.fillStyle = '#2A2A2A';
+            // Main platform body - dark base
+            this.ctx.fillStyle = '#1A1A1A';
             this.ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
 
-            // Add blocky pixel texture
-            const pixelSize = 4;
-            const patternColors = ['#1A1A1A', '#333333', '#2A2A2A', '#252525'];
+            // Add clean pixel blocks for texture (8x8 pixels)
+            const blockSize = 8;
+            this.ctx.fillStyle = '#2A2A2A';
 
-            for (let py = drawY; py < drawY + drawHeight; py += pixelSize) {
-                for (let px = drawX; px < drawX + drawWidth; px += pixelSize) {
-                    // Create pseudo-random pattern based on position
-                    const hash = (px * 73 + py * 37) % 100;
-                    if (hash < 30) { // 30% of pixels get variation
-                        const colorIndex = (hash % 4);
-                        this.ctx.fillStyle = patternColors[colorIndex];
-                        this.ctx.fillRect(px, py, pixelSize, pixelSize);
+            for (let py = drawY; py < drawY + drawHeight; py += blockSize) {
+                for (let px = drawX; px < drawX + drawWidth; px += blockSize) {
+                    // Checkerboard pattern
+                    const checkX = Math.floor((px - drawX) / blockSize);
+                    const checkY = Math.floor((py - drawY) / blockSize);
+                    if ((checkX + checkY) % 2 === 0) {
+                        this.ctx.fillRect(px, py, blockSize, blockSize);
                     }
                 }
             }
 
-            // Add subtle highlight on top edge (only if no neighbor above)
+            // Clean top highlight stripe (only if no neighbor above)
             if (!hasNeighborAbove) {
-                this.ctx.fillStyle = '#404040';
-                const highlightHeight = 4;
-                for (let px = drawX; px < drawX + drawWidth; px += pixelSize) {
-                    if ((px / pixelSize) % 2 === 0) {
-                        this.ctx.fillRect(px, platform.y, pixelSize, highlightHeight);
-                    }
-                }
+                this.ctx.fillStyle = '#3A3A3A';
+                this.ctx.fillRect(platform.x, platform.y, platform.width, 4);
             }
 
-            // Add border pixels (only on free edges)
-            this.ctx.fillStyle = '#0A0A0A';
-            if (!hasNeighborLeft) {
-                for (let py = drawY; py < drawY + drawHeight; py += pixelSize) {
-                    this.ctx.fillRect(platform.x, py, 2, pixelSize);
-                }
-            }
-            if (!hasNeighborRight) {
-                for (let py = drawY; py < drawY + drawHeight; py += pixelSize) {
-                    this.ctx.fillRect(platform.x + platform.width - 2, py, 2, pixelSize);
-                }
-            }
-            if (!hasNeighborAbove) {
-                for (let px = drawX; px < drawX + drawWidth; px += pixelSize) {
-                    this.ctx.fillRect(px, platform.y, pixelSize, 2);
-                }
-            }
+            // Clean bottom shadow stripe (only if no neighbor below)
             if (!hasNeighborBelow) {
-                for (let px = drawX; px < drawX + drawWidth; px += pixelSize) {
-                    this.ctx.fillRect(px, platform.y + platform.height - 2, pixelSize, 2);
-                }
+                this.ctx.fillStyle = '#0A0A0A';
+                this.ctx.fillRect(platform.x, platform.y + platform.height - 4, platform.width, 4);
             }
         }
 
