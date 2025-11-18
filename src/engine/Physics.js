@@ -310,6 +310,37 @@ export class Physics {
         }
     }
 
+    checkTurretCollisions(player, turrets) {
+        for (let turret of turrets) {
+            if (this.checkAABB(player, turret)) {
+                const overlapLeft = (player.x + player.width) - turret.x;
+                const overlapRight = (turret.x + turret.width) - player.x;
+                const overlapTop = (player.y + player.height) - turret.y;
+                const overlapBottom = (turret.y + turret.height) - player.y;
+
+                const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+
+                if (minOverlap === overlapTop && player.velocityY >= 0) {
+                    // Landing on top - turrets are solid
+                    player.y = turret.y - player.height;
+                    player.velocityY = 0;
+                    player.isGrounded = true;
+                    player.jumpCount = 0;
+                    player.lastJumpedFromGlue = false;
+                } else if (minOverlap === overlapBottom && player.velocityY < 0) {
+                    player.y = turret.y + turret.height;
+                    player.velocityY = 0;
+                } else if (minOverlap === overlapLeft) {
+                    player.x = turret.x - player.width;
+                    player.velocityX = 0;
+                } else if (minOverlap === overlapRight) {
+                    player.x = turret.x + turret.width;
+                    player.velocityX = 0;
+                }
+            }
+        }
+    }
+
     checkAABB(a, b) {
         return a.x < b.x + b.width &&
                a.x + a.width > b.x &&

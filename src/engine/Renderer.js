@@ -287,6 +287,9 @@ export class Renderer {
         } else if (colors.special === 'spike') {
             // Gray metallic spike gradient - matching in-game spike blocks
             this.ctx.fillStyle = colors.main;
+        } else if (colors.special === 'turret') {
+            // Turret body - metallic like spike but with turret features
+            this.ctx.fillStyle = colors.main;
         } else {
             // Standard gradient
             const gradient = this.ctx.createLinearGradient(-player.width/2, -player.height/2, player.width/2, player.height/2);
@@ -306,17 +309,17 @@ export class Renderer {
             const pixelSize = 4;
             const gridWidth = player.width / pixelSize;
             const gridHeight = player.height / pixelSize;
-            
+
             for (let gy = 0; gy < gridHeight; gy++) {
                 for (let gx = 0; gx < gridWidth; gx++) {
                     const px = -player.width/2 + gx * pixelSize;
                     const py = -player.height/2 + gy * pixelSize;
-                    
+
                     const verticalPos = gy / gridHeight;
                     const horizontalPos = gx / gridWidth;
-                    
+
                     let color;
-                    
+
                     // Dark gunmetal body with metallic sheen (exact colors from spike blocks)
                     if (verticalPos < 0.3) {
                         // Top highlight - metallic shine
@@ -332,7 +335,7 @@ export class Renderer {
                         // Bottom - darkest
                         color = '#1A2B3C';
                     }
-                    
+
                     // Add metallic edge highlights
                     if (gx === 0 || gy === 0) {
                         color = '#7A8B9C'; // Bright edge
@@ -340,7 +343,51 @@ export class Renderer {
                     if (gx === gridWidth - 1 || gy === gridHeight - 1) {
                         color = '#0A1B2C'; // Dark edge
                     }
-                    
+
+                    this.ctx.fillStyle = color;
+                    this.ctx.fillRect(px, py, pixelSize, pixelSize);
+                }
+            }
+        } else if (colors.special === 'turret') {
+            // Draw turret body - same metallic look as spike but with turret features
+            const pixelSize = 4;
+            const gridWidth = player.width / pixelSize;
+            const gridHeight = player.height / pixelSize;
+
+            for (let gy = 0; gy < gridHeight; gy++) {
+                for (let gx = 0; gx < gridWidth; gx++) {
+                    const px = -player.width/2 + gx * pixelSize;
+                    const py = -player.height/2 + gy * pixelSize;
+
+                    const verticalPos = gy / gridHeight;
+                    const horizontalPos = gx / gridWidth;
+
+                    let color;
+
+                    // Dark gunmetal body with metallic sheen
+                    if (verticalPos < 0.3) {
+                        // Top highlight - metallic shine
+                        if (horizontalPos > 0.3 && horizontalPos < 0.7) {
+                            color = '#6A7B8C'; // Light steel
+                        } else {
+                            color = '#4A5B6C'; // Medium steel
+                        }
+                    } else if (verticalPos < 0.7) {
+                        // Middle - darker metal
+                        color = gx % 2 === gy % 2 ? '#3A4B5C' : '#2A3B4C';
+                    } else {
+                        // Bottom - darkest
+                        color = '#1A2B3C';
+                    }
+
+                    // Add metallic edge highlights
+                    if (gx === 0 || gy === 0) {
+                        color = '#7A8B9C'; // Bright edge
+                    }
+                    if (gx === gridWidth - 1 || gy === gridHeight - 1) {
+                        color = '#0A1B2C'; // Dark edge
+                    }
+
                     this.ctx.fillStyle = color;
                     this.ctx.fillRect(px, py, pixelSize, pixelSize);
                 }
@@ -443,6 +490,29 @@ export class Renderer {
             this.ctx.fillRect(4, -5, 6, 6);
         } else if (colors.special === 'spike') {
             // No eyes for spike skin - just the metallic spike block
+        } else if (colors.special === 'turret') {
+            // Draw turret cannon - pointing right (direction of last movement or default right)
+            this.ctx.fillStyle = '#0A1B2C'; // Dark metal for cannon
+
+            // Cannon base (on right side of body)
+            this.ctx.fillRect(player.width/2 - 8, -6, 12, 12);
+
+            // Cannon barrel extending from body
+            this.ctx.fillStyle = '#2A3B4C'; // Medium metal
+            this.ctx.fillRect(player.width/2 + 2, -4, 10, 8);
+
+            // Cannon tip highlight
+            this.ctx.fillStyle = '#4A5B6C';
+            this.ctx.fillRect(player.width/2 + 8, -3, 4, 6);
+
+            // Small charging indicator (red dot when about to fire)
+            if (player.turretChargingIndicator > 0.7) {
+                const pulseAlpha = 0.5 + Math.sin(Date.now() * 0.02) * 0.5;
+                this.ctx.globalAlpha = pulseAlpha;
+                this.ctx.fillStyle = '#FF4444';
+                this.ctx.fillRect(player.width/2 + 10, -1, 3, 3);
+                this.ctx.globalAlpha = 1;
+            }
         } else {
             // Normal eyes
             this.ctx.fillStyle = '#000000';
@@ -450,8 +520,8 @@ export class Renderer {
             this.ctx.fillRect(4, -5, 6, 6);
         }
         
-        // Highlight (not for lightning/neongreen/spike as they have special rendering)
-        if (colors.special !== 'lightning' && colors.special !== 'neongreen' && colors.special !== 'spike') {
+        // Highlight (not for lightning/neongreen/spike/turret as they have special rendering)
+        if (colors.special !== 'lightning' && colors.special !== 'neongreen' && colors.special !== 'spike' && colors.special !== 'turret') {
             this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
             this.ctx.fillRect(-player.width/2 + 4, -player.height/2 + 4, player.width - 20, 6);
         }
@@ -1883,6 +1953,54 @@ export class Renderer {
 
                     this.ctx.globalAlpha = trailAlpha;
                     this.ctx.fillStyle = '#FF6666';
+                    this.ctx.fillRect(trailX - trailSize/2, trailY - trailSize/2, trailSize, trailSize);
+                }
+                this.ctx.globalAlpha = 1;
+            }
+        });
+    }
+
+    drawPlayerProjectiles(projectiles) {
+        projectiles.forEach(projectile => {
+            const centerX = projectile.x + projectile.width / 2;
+            const centerY = projectile.y + projectile.height / 2;
+
+            // Shadow
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            this.ctx.fillRect(projectile.x + 2, projectile.y + 2, projectile.width, projectile.height);
+
+            // Projectile - Pixel-Art style (blue instead of red)
+            this.ctx.fillStyle = '#4682B4';
+            this.ctx.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
+
+            // Inner glow
+            const glowSize = projectile.width * 0.6;
+            this.ctx.fillStyle = '#87CEEB';
+            this.ctx.fillRect(
+                centerX - glowSize/2,
+                centerY - glowSize/2,
+                glowSize,
+                glowSize
+            );
+
+            // Border
+            this.ctx.strokeStyle = '#2C5282';
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(projectile.x, projectile.y, projectile.width, projectile.height);
+
+            // Trail effect
+            if (Math.abs(projectile.velocityX) > 100 || Math.abs(projectile.velocityY) > 100) {
+                const trailLength = 3;
+                const trailSpacing = 8;
+
+                for (let i = 1; i <= trailLength; i++) {
+                    const trailX = centerX - (projectile.velocityX / 300) * trailSpacing * i;
+                    const trailY = centerY - (projectile.velocityY / 300) * trailSpacing * i;
+                    const trailSize = projectile.width * (1 - i * 0.2);
+                    const trailAlpha = 0.4 - i * 0.1;
+
+                    this.ctx.globalAlpha = trailAlpha;
+                    this.ctx.fillStyle = '#6DD5ED';
                     this.ctx.fillRect(trailX - trailSize/2, trailY - trailSize/2, trailSize, trailSize);
                 }
                 this.ctx.globalAlpha = 1;

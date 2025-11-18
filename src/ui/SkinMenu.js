@@ -99,6 +99,15 @@ export class SkinMenu {
                     2: { main: '#FF4500', light: '#FF6347', dark: '#CC3700', border: '#FF4500' },
                     3: { main: '#FF4500', light: '#FF6347', dark: '#CC3700', border: '#FF4500' }
                 }
+            },
+            turret: {
+                name: 'TURRET',
+                special: 'turret',
+                colors: {
+                    1: { main: '#3A4B5C', light: '#6A7B8C', dark: '#1A2B3C', border: '#0A1B2C' },
+                    2: { main: '#3A4B5C', light: '#6A7B8C', dark: '#1A2B3C', border: '#0A1B2C' },
+                    3: { main: '#3A4B5C', light: '#6A7B8C', dark: '#1A2B3C', border: '#0A1B2C' }
+                }
             }
         };
         

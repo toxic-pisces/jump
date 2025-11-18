@@ -95,6 +95,11 @@ export class Game {
 
         // Projectiles
         this.projectiles = [];
+        this.playerProjectiles = []; // Projectiles shot by turret skin
+
+        // Turret skin timer
+        this.turretShootTimer = 0;
+        this.turretShootInterval = 2.0; // Shoot every 2 seconds
 
         // Setup
         this.setupInputHandlers();
@@ -605,7 +610,7 @@ export class Game {
                 const projectile = turret.update(deltaTime);
                 if (projectile) {
                     this.projectiles.push(projectile);
-                    
+
                     // Play shoot sound with distance-based volume
                     const turretCenterX = turret.x + turret.width / 2;
                     const turretCenterY = turret.y + turret.height / 2;
@@ -614,10 +619,44 @@ export class Game {
                     const dx = turretCenterX - playerCenterX;
                     const dy = turretCenterY - playerCenterY;
                     const distance = Math.sqrt(dx * dx + dy * dy);
-                    
+
                     this.soundManager.playShoot(distance);
                 }
             });
+        }
+
+        // Turret skin shooting mechanic
+        const selectedSkin = localStorage.getItem('selectedSkin') || 'default';
+        if (selectedSkin === 'turret') {
+            this.turretShootTimer += deltaTime;
+
+            // Update charging indicator for visual feedback
+            this.player.turretChargingIndicator = this.turretShootTimer / this.turretShootInterval;
+
+            if (this.turretShootTimer >= this.turretShootInterval) {
+                // Shoot projectile
+                const playerCenterX = this.player.x + this.player.width / 2;
+                const playerCenterY = this.player.y + this.player.height / 2;
+
+                // Create player projectile shooting right
+                this.playerProjectiles.push({
+                    x: playerCenterX + this.player.width / 2,
+                    y: playerCenterY - 8, // Center on cannon
+                    width: 12,
+                    height: 12,
+                    velocityX: 300, // Shoot to the right
+                    velocityY: 0,
+                    lifetime: 5.0,
+                    isPlayerProjectile: true // Mark as player projectile
+                });
+
+                this.turretShootTimer = 0;
+                // Play shoot sound
+                this.soundManager.playShoot(0);
+            }
+        } else {
+            this.turretShootTimer = 0;
+            this.player.turretChargingIndicator = 0;
         }
 
         // Update projectiles
@@ -744,6 +783,63 @@ export class Game {
             }
         }
 
+        // Update player projectiles (from turret skin) - same logic but don't hurt player
+        for (let i = this.playerProjectiles.length - 1; i >= 0; i--) {
+            const projectile = this.playerProjectiles[i];
+            projectile.x += projectile.velocityX * deltaTime;
+            projectile.y += projectile.velocityY * deltaTime;
+            projectile.lifetime -= deltaTime;
+
+            // Check collision with platforms (destroys on any contact)
+            let hitSomething = false;
+
+            // Collect all platforms for collision check
+            const allPlatforms = [
+                ...(this.currentLevel.platforms || []),
+                ...(this.currentLevel.gluePlatforms || []),
+                ...(this.currentLevel.crumblingPlatforms || []),
+                ...(this.currentLevel.blinkingPlatforms || []).filter(p => p.isVisible),
+                ...(this.currentLevel.pressurePlatforms || []),
+                ...(this.currentLevel.movingPlatforms || []),
+                ...(this.currentLevel.turrets || [])
+            ];
+
+            for (let platform of allPlatforms) {
+                if (this.physics.checkAABB(projectile, platform)) {
+                    hitSomething = true;
+                    break;
+                }
+            }
+
+            // If hit something, create impact particles and remove
+            if (hitSomething) {
+                const colors = ['#6DD5ED', '#87CEEB', '#4682B4']; // Blue projectile colors
+                for (let j = 0; j < 8; j++) {
+                    const angle = (Math.PI * 2 * j) / 8;
+                    const speed = 50 + Math.random() * 100;
+                    this.particleSystem.particles.push({
+                        x: projectile.x + projectile.width / 2,
+                        y: projectile.y + projectile.height / 2,
+                        velocityX: Math.cos(angle) * speed,
+                        velocityY: Math.sin(angle) * speed,
+                        life: 0.3 + Math.random() * 0.2,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        gravity: 300,
+                        size: 2 + Math.random() * 2
+                    });
+                }
+                this.playerProjectiles.splice(i, 1);
+                continue;
+            }
+
+            // Remove if lifetime expired or off-screen
+            if (projectile.lifetime <= 0 ||
+                projectile.x < -50 || projectile.x > this.canvas.width + 50 ||
+                projectile.y < -50 || projectile.y > this.canvas.height + 50) {
+                this.playerProjectiles.splice(i, 1);
+            }
+        }
+
         // Input handling - with input lock check
         const rawInput = this.inputManager.getPlayerInput();
         const input = {
@@ -858,6 +954,11 @@ export class Game {
                     }
                 }
             });
+        }
+
+        // Turrets - solid blocks that player can't jump through
+        if (this.currentLevel.turrets) {
+            this.physics.checkTurretCollisions(this.player, this.currentLevel.turrets);
         }
 
         // Enforce world boundaries (prevent escaping left, right, top)
@@ -1477,6 +1578,8 @@ export class Game {
         this.particleSystem.particles = [];
         this.goalTriggered = false; // Reset goal flag
         this.projectiles = []; // Reset projectiles
+        this.playerProjectiles = []; // Reset player projectiles
+        this.turretShootTimer = 0; // Reset turret shoot timer
         this.collectibleThisRun = false; // Reset collectible flag for this run
 
         // Clear all input states to prevent stuck keys/touches
@@ -1561,6 +1664,9 @@ export class Game {
 
             // Draw projectiles
             this.renderer.drawProjectiles(this.projectiles);
+
+            // Draw player projectiles (from turret skin) - blue instead of red
+            this.renderer.drawPlayerProjectiles(this.playerProjectiles);
 
             if (!this.stateManager.isDead() && this.player.width > 0) {
                 this.renderer.drawPlayer(this.player);
