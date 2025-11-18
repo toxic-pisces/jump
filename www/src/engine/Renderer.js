@@ -7,6 +7,81 @@ export class Renderer {
         this.backgroundOffset = 0; // Für subtile Animation
     }
 
+    /**
+     * Auto-tiling helper: Detects neighboring platforms for seamless blending
+     * @param {Object} platform - The platform to check neighbors for
+     * @param {Array} allPlatforms - All platforms in the level
+     * @returns {Object} Object with neighbor flags and draw dimensions
+     */
+    getNeighborInfo(platform, allPlatforms) {
+        const tolerance = 3; // Distance tolerance for considering platforms as neighbors
+
+        // Check all 4 cardinal directions for neighbors
+        const hasNeighborAbove = allPlatforms.some(p =>
+            p !== platform &&
+            Math.abs((p.y + p.height) - platform.y) <= tolerance &&
+            platform.x < p.x + p.width &&
+            platform.x + platform.width > p.x
+        );
+
+        const hasNeighborBelow = allPlatforms.some(p =>
+            p !== platform &&
+            Math.abs(platform.y + platform.height - p.y) <= tolerance &&
+            platform.x < p.x + p.width &&
+            platform.x + platform.width > p.x
+        );
+
+        const hasNeighborLeft = allPlatforms.some(p =>
+            p !== platform &&
+            Math.abs((p.x + p.width) - platform.x) <= tolerance &&
+            platform.y < p.y + p.height &&
+            platform.y + platform.height > p.y
+        );
+
+        const hasNeighborRight = allPlatforms.some(p =>
+            p !== platform &&
+            Math.abs(platform.x + platform.width - p.x) <= tolerance &&
+            platform.y < p.y + p.height &&
+            platform.y + platform.height > p.y
+        );
+
+        // Calculate extended draw dimensions to overlap with neighbors
+        const drawX = hasNeighborLeft ? platform.x - tolerance : platform.x;
+        const drawY = hasNeighborAbove ? platform.y - tolerance : platform.y;
+        const drawWidth = platform.width + (hasNeighborLeft ? tolerance : 0) + (hasNeighborRight ? tolerance : 0);
+        const drawHeight = platform.height + (hasNeighborAbove ? tolerance : 0) + (hasNeighborBelow ? tolerance : 0);
+
+        return {
+            hasNeighborAbove,
+            hasNeighborBelow,
+            hasNeighborLeft,
+            hasNeighborRight,
+            drawX,
+            drawY,
+            drawWidth,
+            drawHeight,
+            // Helper flags for common checks
+            hasAnyNeighbor: hasNeighborAbove || hasNeighborBelow || hasNeighborLeft || hasNeighborRight,
+            hasFreeBottomRight: !hasNeighborRight && !hasNeighborBelow
+        };
+    }
+
+    /**
+     * Collects all platforms of all types into one array
+     * @param {Object} level - The level object containing all platform arrays
+     * @returns {Array} Combined array of all platforms
+     */
+    getAllPlatforms(level) {
+        return [
+            ...(level.platforms || []),
+            ...(level.movingPlatforms || []),
+            ...(level.gluePlatforms || []),
+            ...(level.blinkingPlatforms || []),
+            ...(level.crumblingPlatforms || []),
+            ...(level.pressurePlatforms || [])
+        ];
+    }
+
     drawGlueStrands(player) {
         // Draw stretchy glue strands from player to nearby edges
         const centerX = player.x + player.width / 2;
@@ -212,6 +287,9 @@ export class Renderer {
         } else if (colors.special === 'spike') {
             // Gray metallic spike gradient - matching in-game spike blocks
             this.ctx.fillStyle = colors.main;
+        } else if (colors.special === 'turret') {
+            // Turret body - metallic like spike but with turret features
+            this.ctx.fillStyle = colors.main;
         } else {
             // Standard gradient
             const gradient = this.ctx.createLinearGradient(-player.width/2, -player.height/2, player.width/2, player.height/2);
@@ -231,17 +309,17 @@ export class Renderer {
             const pixelSize = 4;
             const gridWidth = player.width / pixelSize;
             const gridHeight = player.height / pixelSize;
-            
+
             for (let gy = 0; gy < gridHeight; gy++) {
                 for (let gx = 0; gx < gridWidth; gx++) {
                     const px = -player.width/2 + gx * pixelSize;
                     const py = -player.height/2 + gy * pixelSize;
-                    
+
                     const verticalPos = gy / gridHeight;
                     const horizontalPos = gx / gridWidth;
-                    
+
                     let color;
-                    
+
                     // Dark gunmetal body with metallic sheen (exact colors from spike blocks)
                     if (verticalPos < 0.3) {
                         // Top highlight - metallic shine
@@ -257,7 +335,7 @@ export class Renderer {
                         // Bottom - darkest
                         color = '#1A2B3C';
                     }
-                    
+
                     // Add metallic edge highlights
                     if (gx === 0 || gy === 0) {
                         color = '#7A8B9C'; // Bright edge
@@ -265,7 +343,51 @@ export class Renderer {
                     if (gx === gridWidth - 1 || gy === gridHeight - 1) {
                         color = '#0A1B2C'; // Dark edge
                     }
-                    
+
+                    this.ctx.fillStyle = color;
+                    this.ctx.fillRect(px, py, pixelSize, pixelSize);
+                }
+            }
+        } else if (colors.special === 'turret') {
+            // Draw turret body - same metallic look as spike but with turret features
+            const pixelSize = 4;
+            const gridWidth = player.width / pixelSize;
+            const gridHeight = player.height / pixelSize;
+
+            for (let gy = 0; gy < gridHeight; gy++) {
+                for (let gx = 0; gx < gridWidth; gx++) {
+                    const px = -player.width/2 + gx * pixelSize;
+                    const py = -player.height/2 + gy * pixelSize;
+
+                    const verticalPos = gy / gridHeight;
+                    const horizontalPos = gx / gridWidth;
+
+                    let color;
+
+                    // Dark gunmetal body with metallic sheen
+                    if (verticalPos < 0.3) {
+                        // Top highlight - metallic shine
+                        if (horizontalPos > 0.3 && horizontalPos < 0.7) {
+                            color = '#6A7B8C'; // Light steel
+                        } else {
+                            color = '#4A5B6C'; // Medium steel
+                        }
+                    } else if (verticalPos < 0.7) {
+                        // Middle - darker metal
+                        color = gx % 2 === gy % 2 ? '#3A4B5C' : '#2A3B4C';
+                    } else {
+                        // Bottom - darkest
+                        color = '#1A2B3C';
+                    }
+
+                    // Add metallic edge highlights
+                    if (gx === 0 || gy === 0) {
+                        color = '#7A8B9C'; // Bright edge
+                    }
+                    if (gx === gridWidth - 1 || gy === gridHeight - 1) {
+                        color = '#0A1B2C'; // Dark edge
+                    }
+
                     this.ctx.fillStyle = color;
                     this.ctx.fillRect(px, py, pixelSize, pixelSize);
                 }
@@ -368,6 +490,29 @@ export class Renderer {
             this.ctx.fillRect(4, -5, 6, 6);
         } else if (colors.special === 'spike') {
             // No eyes for spike skin - just the metallic spike block
+        } else if (colors.special === 'turret') {
+            // Draw turret cannon - pointing right (direction of last movement or default right)
+            this.ctx.fillStyle = '#0A1B2C'; // Dark metal for cannon
+
+            // Cannon base (on right side of body)
+            this.ctx.fillRect(player.width/2 - 8, -6, 12, 12);
+
+            // Cannon barrel extending from body
+            this.ctx.fillStyle = '#2A3B4C'; // Medium metal
+            this.ctx.fillRect(player.width/2 + 2, -4, 10, 8);
+
+            // Cannon tip highlight
+            this.ctx.fillStyle = '#4A5B6C';
+            this.ctx.fillRect(player.width/2 + 8, -3, 4, 6);
+
+            // Small charging indicator (red dot when about to fire)
+            if (player.turretChargingIndicator > 0.7) {
+                const pulseAlpha = 0.5 + Math.sin(Date.now() * 0.02) * 0.5;
+                this.ctx.globalAlpha = pulseAlpha;
+                this.ctx.fillStyle = '#FF4444';
+                this.ctx.fillRect(player.width/2 + 10, -1, 3, 3);
+                this.ctx.globalAlpha = 1;
+            }
         } else {
             // Normal eyes
             this.ctx.fillStyle = '#000000';
@@ -375,8 +520,8 @@ export class Renderer {
             this.ctx.fillRect(4, -5, 6, 6);
         }
         
-        // Highlight (not for lightning/neongreen/spike as they have special rendering)
-        if (colors.special !== 'lightning' && colors.special !== 'neongreen' && colors.special !== 'spike') {
+        // Highlight (not for lightning/neongreen/spike/turret as they have special rendering)
+        if (colors.special !== 'lightning' && colors.special !== 'neongreen' && colors.special !== 'spike' && colors.special !== 'turret') {
             this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
             this.ctx.fillRect(-player.width/2 + 4, -player.height/2 + 4, player.width - 20, 6);
         }
@@ -497,122 +642,40 @@ export class Renderer {
         }
 
         // Draw platforms mit Schatten
+        const allPlatforms = this.getAllPlatforms(level);
+
         for (let platform of level.platforms) {
-            // Collect ALL platform types for neighbor detection
-            const allPlatforms = [
-                ...level.platforms,
-                ...(level.movingPlatforms || []),
-                ...(level.gluePlatforms || []),
-                ...(level.blinkingPlatforms || []),
-                ...(level.crumblingPlatforms || []),
-                ...(level.pressurePlatforms || [])
-            ];
-            
-            // Check for neighboring platforms of ANY type to merge seamlessly
-            const hasNeighborAbove = allPlatforms.some(p => 
-                p !== platform &&
-                Math.abs((p.y + p.height) - platform.y) <= 3 &&
-                platform.x < p.x + p.width &&
-                platform.x + platform.width > p.x
-            );
-            
-            const hasNeighborBelow = allPlatforms.some(p => 
-                p !== platform &&
-                Math.abs(platform.y + platform.height - p.y) <= 3 &&
-                platform.x < p.x + p.width &&
-                platform.x + platform.width > p.x
-            );
-            
-            const hasNeighborLeft = allPlatforms.some(p => 
-                p !== platform &&
-                Math.abs((p.x + p.width) - platform.x) <= 3 &&
-                platform.y < p.y + p.height &&
-                platform.y + platform.height > p.y
-            );
-            
-            const hasNeighborRight = allPlatforms.some(p => 
-                p !== platform &&
-                Math.abs(platform.x + platform.width - p.x) <= 3 &&
-                platform.y < p.y + p.height &&
-                platform.y + platform.height > p.y
-            );
-            
-            // Extend platform body to cover gaps where neighbors exist
-            const drawX = hasNeighborLeft ? platform.x - 3 : platform.x;
-            const drawY = hasNeighborAbove ? platform.y - 3 : platform.y;
-            const drawWidth = platform.width + (hasNeighborLeft ? 3 : 0) + (hasNeighborRight ? 3 : 0);
-            const drawHeight = platform.height + (hasNeighborAbove ? 3 : 0) + (hasNeighborBelow ? 3 : 0);
-            
+            // Use auto-tiling system for seamless blending
+            const neighbors = this.getNeighborInfo(platform, allPlatforms);
+
             // Schatten - only on free edges
-            if (!hasNeighborRight && !hasNeighborBelow) {
+            if (neighbors.hasFreeBottomRight) {
                 this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
                 this.ctx.fillRect(platform.x + 3, platform.y + 3, platform.width, platform.height);
             }
 
-            // Main platform - plain black
+            // Main platform - plain black, extended to seamlessly blend with neighbors
             this.ctx.fillStyle = '#1A1A1A';
-            this.ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+            this.ctx.fillRect(neighbors.drawX, neighbors.drawY, neighbors.drawWidth, neighbors.drawHeight);
         }
 
         // Draw glue platforms
         if (level.gluePlatforms) {
             for (let platform of level.gluePlatforms) {
                 const time = this.sparkleTime || 0;
-                
-                // Collect ALL platform types for neighbor detection
-                const allPlatforms = [
-                    ...level.platforms,
-                    ...(level.movingPlatforms || []),
-                    ...(level.gluePlatforms || []),
-                    ...(level.blinkingPlatforms || []),
-                    ...(level.crumblingPlatforms || []),
-                    ...(level.pressurePlatforms || [])
-                ];
-                
-                // Detect neighboring platforms of ANY type
-                const hasNeighborAbove = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs((p.y + p.height) - platform.y) <= 3 &&
-                    platform.x < p.x + p.width &&
-                    platform.x + platform.width > p.x
-                );
-                
-                const hasNeighborBelow = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs(platform.y + platform.height - p.y) <= 3 &&
-                    platform.x < p.x + p.width &&
-                    platform.x + platform.width > p.x
-                );
-                
-                const hasNeighborLeft = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs((p.x + p.width) - platform.x) <= 3 &&
-                    platform.y < p.y + p.height &&
-                    platform.y + platform.height > p.y
-                );
-                
-                const hasNeighborRight = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs(platform.x + platform.width - p.x) <= 3 &&
-                    platform.y < p.y + p.height &&
-                    platform.y + platform.height > p.y
-                );
 
-                // Extend platform body to cover gaps where neighbors exist
-                const drawX = hasNeighborLeft ? platform.x - 3 : platform.x;
-                const drawY = hasNeighborAbove ? platform.y - 3 : platform.y;
-                const drawWidth = platform.width + (hasNeighborLeft ? 3 : 0) + (hasNeighborRight ? 3 : 0);
-                const drawHeight = platform.height + (hasNeighborAbove ? 3 : 0) + (hasNeighborBelow ? 3 : 0);
+                // Use auto-tiling system for seamless blending
+                const neighbors = this.getNeighborInfo(platform, allPlatforms);
 
                 // Schatten - only on free edges
-                if (!hasNeighborRight && !hasNeighborBelow) {
+                if (neighbors.hasFreeBottomRight) {
                     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
                     this.ctx.fillRect(platform.x + 3, platform.y + 3, platform.width, platform.height);
                 }
 
-                // Main platform - solid black for consistency, extended to overlap neighbors
+                // Main platform base - solid black for consistency, extended to seamlessly blend with neighbors
                 this.ctx.fillStyle = '#1A1A1A';
-                this.ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+                this.ctx.fillRect(neighbors.drawX, neighbors.drawY, neighbors.drawWidth, neighbors.drawHeight);
 
                 // SLIME LAYER - covers top and sides, not bottom
                 const slimeColor = '#2193B0';
@@ -717,9 +780,9 @@ export class Renderer {
 
                 // SLOW DRIPS from sides (very few, very slow) - only on free sides
                 const dripPositions = [0.3, 0.7]; // Only 2 drips per side at fixed positions
-                
+
                 // Left drips - only if no neighbor
-                if (!hasNeighborLeft) {
+                if (!neighbors.hasNeighborLeft) {
                     dripPositions.forEach((pos, idx) => {
                         const dripY = platform.y + platform.height * pos;
                         const dripPhase = time * 0.2 + idx * 2; // Very slow
@@ -741,7 +804,7 @@ export class Renderer {
                 }
                 
                 // Right drips - only if no neighbor
-                if (!hasNeighborRight) {
+                if (!neighbors.hasNeighborRight) {
                     dripPositions.forEach((pos, idx) => {
                         const dripY = platform.y + platform.height * pos;
                         const dripPhase = time * 0.2 + idx * 2 + 1;
@@ -848,73 +911,31 @@ export class Renderer {
         // Draw blinking platforms with fade effect
         if (level.blinkingPlatforms) {
             for (let platform of level.blinkingPlatforms) {
-                // Collect ALL platform types for neighbor detection
-                const allPlatforms = [
-                    ...level.platforms,
-                    ...(level.movingPlatforms || []),
-                    ...(level.gluePlatforms || []),
-                    ...(level.blinkingPlatforms || []),
-                    ...(level.crumblingPlatforms || []),
-                    ...(level.pressurePlatforms || [])
-                ];
-                
-                // Check for neighboring platforms of ANY type to merge seamlessly
-                const hasNeighborAbove = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs((p.y + p.height) - platform.y) <= 3 &&
-                    platform.x < p.x + p.width &&
-                    platform.x + platform.width > p.x
-                );
-                
-                const hasNeighborBelow = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs(platform.y + platform.height - p.y) <= 3 &&
-                    platform.x < p.x + p.width &&
-                    platform.x + platform.width > p.x
-                );
-                
-                const hasNeighborLeft = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs((p.x + p.width) - platform.x) <= 3 &&
-                    platform.y < p.y + p.height &&
-                    platform.y + platform.height > p.y
-                );
-                
-                const hasNeighborRight = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs(platform.x + platform.width - p.x) <= 3 &&
-                    platform.y < p.y + p.height &&
-                    platform.y + platform.height > p.y
-                );
-                
-                // Extend platform body to cover gaps where neighbors exist
-                const drawX = hasNeighborLeft ? platform.x - 3 : platform.x;
-                const drawY = hasNeighborAbove ? platform.y - 3 : platform.y;
-                const drawWidth = platform.width + (hasNeighborLeft ? 3 : 0) + (hasNeighborRight ? 3 : 0);
-                const drawHeight = platform.height + (hasNeighborAbove ? 3 : 0) + (hasNeighborBelow ? 3 : 0);
-                
+                // Use auto-tiling system for seamless blending
+                const neighbors = this.getNeighborInfo(platform, allPlatforms);
+
                 this.ctx.save();
 
                 // Shadow (only when visible enough) - only on free edges
-                if (platform.opacity > 0.3 && !hasNeighborRight && !hasNeighborBelow) {
+                if (platform.opacity > 0.3 && neighbors.hasFreeBottomRight) {
                     this.ctx.globalAlpha = platform.opacity * 0.25;
                     this.ctx.fillStyle = 'rgba(0, 0, 0, 1)';
                     this.ctx.fillRect(platform.x + 3, platform.y + 3, platform.width, platform.height);
                     this.ctx.globalAlpha = 1;
                 }
 
-                // Warning flash effect - PULSING GLOW around platform (only on free edges)
+                // Warning flash effect - PULSING GLOW around platform
                 if (platform.isWarning) {
                     const pulseSize = 6;
                     const pulseAlpha = 0.4 + Math.sin(Date.now() * 0.02) * 0.3;
-                    
+
                     // Outer warning glow
                     this.ctx.globalAlpha = pulseAlpha * platform.opacity;
                     this.ctx.fillStyle = '#FFD700';
                     this.ctx.fillRect(
-                        platform.x - pulseSize, 
-                        platform.y - pulseSize, 
-                        platform.width + pulseSize * 2, 
+                        platform.x - pulseSize,
+                        platform.y - pulseSize,
+                        platform.width + pulseSize * 2,
                         platform.height + pulseSize * 2
                     );
                     this.ctx.globalAlpha = 1;
@@ -922,9 +943,9 @@ export class Renderer {
 
                 this.ctx.globalAlpha = platform.opacity;
 
-                // Main platform - plain black, extended to overlap neighbors
+                // Main platform - plain black, extended to seamlessly blend with neighbors
                 this.ctx.fillStyle = '#1A1A1A';
-                this.ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+                this.ctx.fillRect(neighbors.drawX, neighbors.drawY, neighbors.drawWidth, neighbors.drawHeight);
 
                 this.ctx.restore();
             }
@@ -933,58 +954,25 @@ export class Renderer {
         // Draw moving platforms
         if (level.movingPlatforms) {
             for (let platform of level.movingPlatforms) {
-                // Detect neighboring platforms for seamless merging
-                const allPlatforms = [
-                    ...(level.platforms || []),
-                    ...(level.gluePlatforms || []),
-                    ...(level.movingPlatforms || []),
-                    ...(level.blinkingPlatforms || []),
-                    ...(level.pressurePlates || [])
-                ];
+                // Use auto-tiling system for seamless blending
+                const neighbors = this.getNeighborInfo(platform, allPlatforms);
 
-                const hasLeftNeighbor = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs((p.x + p.width) - platform.x) <= 3 &&
-                    Math.abs(p.y - platform.y) < 5
-                );
-                const hasRightNeighbor = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs(p.x - (platform.x + platform.width)) <= 3 &&
-                    Math.abs(p.y - platform.y) < 5
-                );
-                const hasTopNeighbor = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs((p.y + p.height) - platform.y) <= 3 &&
-                    Math.abs(p.x - platform.x) < 5
-                );
-                const hasBottomNeighbor = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs(p.y - (platform.y + platform.height)) <= 3 &&
-                    Math.abs(p.x - platform.x) < 5
-                );
-
-                // Extend platform body to overlap with neighbors
-                const drawX = hasLeftNeighbor ? platform.x - 3 : platform.x;
-                const drawY = hasTopNeighbor ? platform.y - 3 : platform.y;
-                const drawWidth = platform.width + (hasLeftNeighbor ? 3 : 0) + (hasRightNeighbor ? 3 : 0);
-                const drawHeight = platform.height + (hasTopNeighbor ? 3 : 0) + (hasBottomNeighbor ? 3 : 0);
-
-                // Main platform - plain black like other platforms
+                // Main platform - plain black, extended to seamlessly blend with neighbors
                 this.ctx.fillStyle = '#1A1A1A';
-                this.ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+                this.ctx.fillRect(neighbors.drawX, neighbors.drawY, neighbors.drawWidth, neighbors.drawHeight);
 
                 // Single blinking yellow blocky arrow showing direction
                 const time = this.sparkleTime || 0;
                 const blinkOpacity = Math.sin(time * 1.5) * 0.5 + 0.5; // Slow oscillation between 0 and 1
                 this.ctx.fillStyle = `rgba(255, 215, 0, ${blinkOpacity})`; // Gold/yellow with blinking
-                
+
                 const centerX = platform.x + platform.width / 2;
                 const centerY = platform.y + platform.height / 2;
-                
+
                 if (platform.direction === 'horizontal') {
                     // Blocky horizontal arrow (pixel-art style)
                     const dir = platform.moveDirection > 0 ? 1 : -1;
-                    
+
                     // Arrow head (blocky triangle)
                     this.ctx.fillRect(centerX + 5 * dir, centerY - 2, 3, 5);   // Tip
                     this.ctx.fillRect(centerX + 2 * dir, centerY - 5, 3, 11);  // Middle section
@@ -993,29 +981,12 @@ export class Renderer {
                 } else {
                     // Blocky vertical arrow (pixel-art style)
                     const dir = platform.moveDirection > 0 ? 1 : -1;
-                    
+
                     // Arrow head (blocky triangle)
                     this.ctx.fillRect(centerX - 2, centerY + 5 * dir, 5, 3);   // Tip
                     this.ctx.fillRect(centerX - 5, centerY + 2 * dir, 11, 3);  // Middle section
                     // Arrow shaft (thin line)
                     this.ctx.fillRect(centerX - 2, centerY - 4 * dir, 5, 6);   // Shaft
-                }
-                
-                this.ctx.fillStyle = '#FFD700'; // Reset for next use
-
-                // Only draw edges where there are no neighbors
-                this.ctx.fillStyle = '#000000';
-                if (!hasLeftNeighbor) {
-                    this.ctx.fillRect(platform.x, platform.y, 2, platform.height);
-                }
-                if (!hasRightNeighbor) {
-                    this.ctx.fillRect(platform.x + platform.width - 2, platform.y, 2, platform.height);
-                }
-                if (!hasTopNeighbor) {
-                    this.ctx.fillRect(platform.x, platform.y, platform.width, 2);
-                }
-                if (!hasBottomNeighbor) {
-                    this.ctx.fillRect(platform.x, platform.y + platform.height - 2, platform.width, 2);
                 }
             }
         }
@@ -1023,60 +994,18 @@ export class Renderer {
         // Draw pressure platforms
         if (level.pressurePlatforms) {
             for (let platform of level.pressurePlatforms) {
-                // Collect ALL platform types for neighbor detection
-                const allPlatforms = [
-                    ...level.platforms,
-                    ...(level.movingPlatforms || []),
-                    ...(level.gluePlatforms || []),
-                    ...(level.blinkingPlatforms || []),
-                    ...(level.crumblingPlatforms || []),
-                    ...(level.pressurePlatforms || [])
-                ];
-                
-                // Check for neighboring platforms of ANY type to merge seamlessly
-                const hasNeighborAbove = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs((p.y + p.height) - platform.y) <= 3 &&
-                    platform.x < p.x + p.width &&
-                    platform.x + platform.width > p.x
-                );
-                
-                const hasNeighborBelow = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs(platform.y + platform.height - p.y) <= 3 &&
-                    platform.x < p.x + p.width &&
-                    platform.x + platform.width > p.x
-                );
-                
-                const hasNeighborLeft = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs((p.x + p.width) - platform.x) <= 3 &&
-                    platform.y < p.y + p.height &&
-                    platform.y + platform.height > p.y
-                );
-                
-                const hasNeighborRight = allPlatforms.some(p => 
-                    p !== platform &&
-                    Math.abs(platform.x + platform.width - p.x) <= 3 &&
-                    platform.y < p.y + p.height &&
-                    platform.y + platform.height > p.y
-                );
-                
-                // Extend platform body to cover gaps where neighbors exist
-                const drawX = hasNeighborLeft ? platform.x - 3 : platform.x;
-                const drawY = hasNeighborAbove ? platform.y - 3 : platform.y;
-                const drawWidth = platform.width + (hasNeighborLeft ? 3 : 0) + (hasNeighborRight ? 3 : 0);
-                const drawHeight = platform.height + (hasNeighborAbove ? 3 : 0) + (hasNeighborBelow ? 3 : 0);
-                
+                // Use auto-tiling system for seamless blending
+                const neighbors = this.getNeighborInfo(platform, allPlatforms);
+
                 // Shadow - only on free edges
-                if (!hasNeighborRight && !hasNeighborBelow) {
+                if (neighbors.hasFreeBottomRight) {
                     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
                     this.ctx.fillRect(platform.x + 3, platform.y + 3, platform.width, platform.height);
                 }
 
-                // Base platform - plain black, extended to overlap neighbors
+                // Base platform - plain black, extended to seamlessly blend with neighbors
                 this.ctx.fillStyle = '#1A1A1A';
-                this.ctx.fillRect(drawX, drawY, drawWidth, drawHeight);
+                this.ctx.fillRect(neighbors.drawX, neighbors.drawY, neighbors.drawWidth, neighbors.drawHeight);
 
                 // Pressure plate - yellow, on top of platform (blocky pixel style)
                 const plateHeight = 6;
@@ -2024,6 +1953,54 @@ export class Renderer {
 
                     this.ctx.globalAlpha = trailAlpha;
                     this.ctx.fillStyle = '#FF6666';
+                    this.ctx.fillRect(trailX - trailSize/2, trailY - trailSize/2, trailSize, trailSize);
+                }
+                this.ctx.globalAlpha = 1;
+            }
+        });
+    }
+
+    drawPlayerProjectiles(projectiles) {
+        projectiles.forEach(projectile => {
+            const centerX = projectile.x + projectile.width / 2;
+            const centerY = projectile.y + projectile.height / 2;
+
+            // Shadow
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            this.ctx.fillRect(projectile.x + 2, projectile.y + 2, projectile.width, projectile.height);
+
+            // Projectile - Pixel-Art style (blue instead of red)
+            this.ctx.fillStyle = '#4682B4';
+            this.ctx.fillRect(projectile.x, projectile.y, projectile.width, projectile.height);
+
+            // Inner glow
+            const glowSize = projectile.width * 0.6;
+            this.ctx.fillStyle = '#87CEEB';
+            this.ctx.fillRect(
+                centerX - glowSize/2,
+                centerY - glowSize/2,
+                glowSize,
+                glowSize
+            );
+
+            // Border
+            this.ctx.strokeStyle = '#2C5282';
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(projectile.x, projectile.y, projectile.width, projectile.height);
+
+            // Trail effect
+            if (Math.abs(projectile.velocityX) > 100 || Math.abs(projectile.velocityY) > 100) {
+                const trailLength = 3;
+                const trailSpacing = 8;
+
+                for (let i = 1; i <= trailLength; i++) {
+                    const trailX = centerX - (projectile.velocityX / 300) * trailSpacing * i;
+                    const trailY = centerY - (projectile.velocityY / 300) * trailSpacing * i;
+                    const trailSize = projectile.width * (1 - i * 0.2);
+                    const trailAlpha = 0.4 - i * 0.1;
+
+                    this.ctx.globalAlpha = trailAlpha;
+                    this.ctx.fillStyle = '#6DD5ED';
                     this.ctx.fillRect(trailX - trailSize/2, trailY - trailSize/2, trailSize, trailSize);
                 }
                 this.ctx.globalAlpha = 1;
