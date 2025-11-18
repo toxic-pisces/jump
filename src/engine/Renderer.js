@@ -491,13 +491,40 @@ export class Renderer {
         } else if (colors.special === 'spike') {
             // No eyes for spike skin - just the metallic spike block
         } else if (colors.special === 'turret') {
-            // Draw turret cannon - pointing right (direction of last movement or default right)
+            // Draw turret cannon pointing in rotation direction
+            this.ctx.save();
+
+            // Charging glow effect
+            if (player.turretIsCharging) {
+                const glowIntensity = player.turretChargingIndicator;
+                const glowSize = 8 + glowIntensity * 12;
+
+                this.ctx.shadowColor = '#FF4444';
+                this.ctx.shadowBlur = glowIntensity * 20;
+
+                // Pulsing glow
+                const pulseAlpha = 0.3 + glowIntensity * 0.5 + Math.sin(Date.now() * 0.015) * 0.2;
+                this.ctx.globalAlpha = pulseAlpha;
+                this.ctx.fillStyle = '#FF6666';
+                this.ctx.fillRect(-glowSize/2, -glowSize/2, glowSize, glowSize);
+                this.ctx.globalAlpha = 1;
+                this.ctx.shadowBlur = 0;
+            }
+
+            this.ctx.restore();
+            this.ctx.save();
+
+            // Rotate cannon to point in player's rotation direction
+            // No additional rotation needed - already in rotated context
+
             this.ctx.fillStyle = '#0A1B2C'; // Dark metal for cannon
 
-            // Cannon base (on right side of body)
-            this.ctx.fillRect(player.width/2 - 8, -6, 12, 12);
+            // Cannon base (centered where the cannon would be)
+            const cannonBaseX = player.width/2 - 8;
+            const cannonBaseY = -6;
+            this.ctx.fillRect(cannonBaseX, cannonBaseY, 12, 12);
 
-            // Cannon barrel extending from body
+            // Cannon barrel extending in rotation direction
             this.ctx.fillStyle = '#2A3B4C'; // Medium metal
             this.ctx.fillRect(player.width/2 + 2, -4, 10, 8);
 
@@ -505,14 +532,34 @@ export class Renderer {
             this.ctx.fillStyle = '#4A5B6C';
             this.ctx.fillRect(player.width/2 + 8, -3, 4, 6);
 
-            // Small charging indicator (red dot when about to fire)
-            if (player.turretChargingIndicator > 0.7) {
-                const pulseAlpha = 0.5 + Math.sin(Date.now() * 0.02) * 0.5;
+            // Charging indicator at cannon tip
+            if (player.turretIsCharging) {
+                const chargeSize = 2 + player.turretChargingIndicator * 4;
+                const pulseAlpha = 0.6 + player.turretChargingIndicator * 0.4;
                 this.ctx.globalAlpha = pulseAlpha;
+
+                // Growing red charge indicator
                 this.ctx.fillStyle = '#FF4444';
-                this.ctx.fillRect(player.width/2 + 10, -1, 3, 3);
+                this.ctx.fillRect(
+                    player.width/2 + 10 - chargeSize/2,
+                    -chargeSize/2,
+                    chargeSize,
+                    chargeSize
+                );
+
+                // Bright center
+                this.ctx.fillStyle = '#FFAAAA';
+                this.ctx.fillRect(
+                    player.width/2 + 10 - chargeSize/4,
+                    -chargeSize/4,
+                    chargeSize/2,
+                    chargeSize/2
+                );
+
                 this.ctx.globalAlpha = 1;
             }
+
+            this.ctx.restore();
         } else {
             // Normal eyes
             this.ctx.fillStyle = '#000000';
@@ -1965,6 +2012,15 @@ export class Renderer {
             const centerX = projectile.x + projectile.width / 2;
             const centerY = projectile.y + projectile.height / 2;
 
+            this.ctx.save();
+
+            // Rotate projectile based on its direction
+            if (projectile.rotation !== undefined) {
+                this.ctx.translate(centerX, centerY);
+                this.ctx.rotate(projectile.rotation);
+                this.ctx.translate(-centerX, -centerY);
+            }
+
             // Shadow
             this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             this.ctx.fillRect(projectile.x + 2, projectile.y + 2, projectile.width, projectile.height);
@@ -2005,6 +2061,8 @@ export class Renderer {
                 }
                 this.ctx.globalAlpha = 1;
             }
+
+            this.ctx.restore();
         });
     }
 }

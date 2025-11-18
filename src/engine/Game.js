@@ -630,32 +630,60 @@ export class Game {
         if (selectedSkin === 'turret') {
             this.turretShootTimer += deltaTime;
 
-            // Update charging indicator for visual feedback
-            this.player.turretChargingIndicator = this.turretShootTimer / this.turretShootInterval;
+            const chargeDuration = 0.5; // 0.5 seconds charge animation like real turrets
+            const timeUntilFire = this.turretShootInterval - this.turretShootTimer;
+
+            // Charging state (like real turrets)
+            if (timeUntilFire <= chargeDuration && timeUntilFire > 0) {
+                this.player.turretIsCharging = true;
+                this.player.turretChargingIndicator = 1 - (timeUntilFire / chargeDuration);
+            } else {
+                this.player.turretIsCharging = false;
+                this.player.turretChargingIndicator = 0;
+            }
 
             if (this.turretShootTimer >= this.turretShootInterval) {
                 // Shoot projectile
                 const playerCenterX = this.player.x + this.player.width / 2;
                 const playerCenterY = this.player.y + this.player.height / 2;
 
-                // Create player projectile shooting right
+                // Calculate direction based on player rotation
+                // Player rotation is in radians
+                const rotation = this.player.rotation || 0;
+                const speed = 400;
+
+                // Calculate velocity based on rotation angle
+                const velocityX = Math.cos(rotation) * speed;
+                const velocityY = Math.sin(rotation) * speed;
+
+                // Calculate spawn position at the edge of the player in the direction of rotation
+                const spawnDistance = this.player.width / 2 + 8;
+                const spawnX = playerCenterX + Math.cos(rotation) * spawnDistance;
+                const spawnY = playerCenterY + Math.sin(rotation) * spawnDistance;
+
+                // Create player projectile in rotation direction
                 this.playerProjectiles.push({
-                    x: playerCenterX + this.player.width / 2,
-                    y: playerCenterY - 8, // Center on cannon
+                    x: spawnX - 6, // Center the projectile
+                    y: spawnY - 6,
                     width: 12,
                     height: 12,
-                    velocityX: 300, // Shoot to the right
-                    velocityY: 0,
+                    velocityX: velocityX,
+                    velocityY: velocityY,
                     lifetime: 5.0,
-                    isPlayerProjectile: true // Mark as player projectile
+                    rotation: rotation, // Store rotation for rendering
+                    isPlayerProjectile: true
                 });
 
                 this.turretShootTimer = 0;
+                this.player.turretIsCharging = false;
+                this.player.turretChargingIndicator = 0;
+
                 // Play shoot sound
                 this.soundManager.playShoot(0);
             }
         } else {
             this.turretShootTimer = 0;
+            this.player.turretIsCharging = false;
             this.player.turretChargingIndicator = 0;
         }
 
