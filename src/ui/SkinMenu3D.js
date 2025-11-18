@@ -30,7 +30,7 @@ export class SkinMenu3D {
         this.blinkTimer = 0;
 
         // Available skins with unlock requirements
-        this.availableSkins = ['default', 'red', 'white', 'black', 'lightning', 'neongreen', 'rainbow', 'angry', 'glue', 'spike'];
+        this.availableSkins = ['default', 'red', 'white', 'black', 'lightning', 'neongreen', 'rainbow', 'angry', 'glue', 'spike', 'turret'];
 
         // Skin unlock requirements text
         this.skinRequirements = {
@@ -38,6 +38,7 @@ export class SkinMenu3D {
             red: null,
             white: null,
             black: null,
+            turret: null,
             rainbow: 'Collect all 27 hearts in World 1',
             lightning: 'Complete World 2 with 22+ hearts',
             neongreen: 'Complete World 3 with 22+ hearts',
@@ -128,6 +129,15 @@ export class SkinMenu3D {
             spike: {
                 name: 'SPIKE',
                 special: 'spike',
+                colors: {
+                    1: { main: '#3A4B5C', light: '#6A7B8C', dark: '#1A2B3C', border: '#0A1B2C' },
+                    2: { main: '#3A4B5C', light: '#6A7B8C', dark: '#1A2B3C', border: '#0A1B2C' },
+                    3: { main: '#3A4B5C', light: '#6A7B8C', dark: '#1A2B3C', border: '#0A1B2C' }
+                }
+            },
+            turret: {
+                name: 'TURRET',
+                special: 'turret',
                 colors: {
                     1: { main: '#3A4B5C', light: '#6A7B8C', dark: '#1A2B3C', border: '#0A1B2C' },
                     2: { main: '#3A4B5C', light: '#6A7B8C', dark: '#1A2B3C', border: '#0A1B2C' },
@@ -494,8 +504,8 @@ export class SkinMenu3D {
             this.ctx.fillRect(-size/2 + 10, -size/2 + 10, size * 0.6, size * 0.1);
         }
 
-        // Eyes (only on center cube, not for spike)
-        if (alpha > 0.6 && skin.special !== 'spike' && !isLocked) {
+        // Eyes (only on center cube, not for spike or turret)
+        if (alpha > 0.6 && skin.special !== 'spike' && skin.special !== 'turret' && !isLocked) {
             const eyeSize = size * 0.08;
             const eyeSpacing = size * 0.2;
             this.ctx.fillStyle = '#000000';
@@ -548,6 +558,17 @@ export class SkinMenu3D {
             this.ctx.fillRect(-size * 0.3, -size/2, dripSize, dripSize);
             this.ctx.fillRect(0, -size/2, dripSize, dripSize);
             this.ctx.fillRect(size * 0.25, -size/2, dripSize, dripSize);
+        } else if (skin.special === 'turret' && alpha > 0.6) {
+            // Turret cannon on the right side
+            this.ctx.fillStyle = colors.dark;
+            // Cannon base
+            this.ctx.fillRect(size/2 - size * 0.15, -size * 0.1, size * 0.2, size * 0.2);
+            // Cannon barrel
+            this.ctx.fillStyle = colors.main;
+            this.ctx.fillRect(size/2, -size * 0.05, size * 0.25, size * 0.1);
+            // Cannon tip
+            this.ctx.fillStyle = colors.light;
+            this.ctx.fillRect(size/2 + size * 0.2, -size * 0.03, size * 0.08, size * 0.06);
         }
 
         this.ctx.restore();
