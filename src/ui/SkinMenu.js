@@ -346,6 +346,17 @@ export class SkinMenu {
                 ctx.fillRect(x + size - dripSize, y + 24, dripSize, dripSize);
             } else if (skin.special === 'spike') {
                 // Spike skin rendering is handled in border section above
+            } else if (skin.special === 'turret') {
+                // Draw small cannon on the right side for preview
+                ctx.fillStyle = colors.dark;
+                // Cannon base
+                ctx.fillRect(x + size - 6, y + size/2 - 4, 8, 8);
+                // Cannon barrel
+                ctx.fillStyle = colors.main;
+                ctx.fillRect(x + size - 2, y + size/2 - 2, 6, 4);
+                // Cannon tip
+                ctx.fillStyle = colors.light;
+                ctx.fillRect(x + size + 2, y + size/2 - 1, 3, 2);
             } else {
                 // Highlight
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
@@ -419,9 +430,14 @@ export class SkinMenu {
                 1: { main: '#FF4500', light: '#FF6347', dark: '#CC3700', border: '#FF4500', special: 'angry' },
                 2: { main: '#FF4500', light: '#FF6347', dark: '#CC3700', border: '#FF4500', special: 'angry' },
                 3: { main: '#FF4500', light: '#FF6347', dark: '#CC3700', border: '#FF4500', special: 'angry' }
+            },
+            turret: {
+                1: { main: '#3A4B5C', light: '#6A7B8C', dark: '#1A2B3C', border: '#0A1B2C', special: 'turret' },
+                2: { main: '#3A4B5C', light: '#6A7B8C', dark: '#1A2B3C', border: '#0A1B2C', special: 'turret' },
+                3: { main: '#3A4B5C', light: '#6A7B8C', dark: '#1A2B3C', border: '#0A1B2C', special: 'turret' }
             }
         };
-        
+
         return skins[skinId] ? skins[skinId][world] : skins.default[world];
     }
 }
