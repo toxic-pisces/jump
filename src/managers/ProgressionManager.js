@@ -37,7 +37,7 @@ export class ProgressionManager {
                 unlockedWorlds: [1], // Only world 1 available
                 unlockedSpeedruns: [], // No speedruns unlocked
                 ironmanUnlocked: false,
-                unlockedSkins: ['default', 'red', 'white', 'black'] // Default unlocked skins
+                unlockedSkins: ['default', 'red', 'white', 'black', 'turret'] // Default unlocked skins
             };
             this.save();
         }
@@ -56,7 +56,7 @@ export class ProgressionManager {
     // Check if a skin is unlocked
     isSkinUnlocked(skinId) {
         if (!this.data.unlockedSkins) {
-            this.data.unlockedSkins = ['default', 'red', 'white', 'black'];
+            this.data.unlockedSkins = ['default', 'red', 'white', 'black', 'turret'];
             this.save();
         }
         return this.data.unlockedSkins.includes(skinId);
@@ -65,7 +65,7 @@ export class ProgressionManager {
     // Unlock a skin
     unlockSkin(skinId) {
         if (!this.data.unlockedSkins) {
-            this.data.unlockedSkins = ['default', 'red', 'white', 'black'];
+            this.data.unlockedSkins = ['default', 'red', 'white', 'black', 'turret'];
         }
         if (!this.data.unlockedSkins.includes(skinId)) {
             this.data.unlockedSkins.push(skinId);
@@ -405,7 +405,7 @@ export class ProgressionManager {
             unlockedWorlds: [1, 2, 3],
             unlockedSpeedruns: [1, 2, 3],
             ironmanUnlocked: true,
-            unlockedSkins: ['default', 'red', 'white', 'black', 'lightning', 'neongreen', 'rainbow', 'angry', 'glue', 'spike']
+            unlockedSkins: ['default', 'red', 'white', 'black', 'lightning', 'neongreen', 'rainbow', 'angry', 'glue', 'spike', 'turret']
         };
         
         // Give 3 stars to all levels
